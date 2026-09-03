@@ -1,0 +1,13 @@
+flowchart TB
+  User[User] --> CF[Cloudflare DNS / CDN / Edge]
+  CF --> Web[TanStack Start on Cloudflare Workers]
+  Web --> Neon[(Neon PostgreSQL)]
+  Web --> R2[(Cloudflare R2)]
+  Web --> API[Render FastAPI]
+  API --> GPU[Render GPU / Model Server]
+  API --> Worker[Render Background Worker]
+  Worker --> Neon
+  Worker --> R2
+  GPU --> Models[Qwen / Gemma / BGE]
+  CI[GitHub Actions] --> CF
+  CI --> Render

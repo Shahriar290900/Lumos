@@ -1,0 +1,68 @@
+{
+  "files": 23,
+  "errors": [],
+  "subjects": {
+    "English": {
+      "files": 16,
+      "records": 43,
+      "classes": [
+        "SSC"
+      ],
+      "chapters": [
+        "1",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "token_count_min": 33,
+      "token_count_median": 2061,
+      "token_count_max": 2248,
+      "missing_common_fields": {}
+    },
+    "ICT": {
+      "files": 6,
+      "records": 120,
+      "classes": [
+        "SSC"
+      ],
+      "chapters": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "token_count_min": 1339,
+      "token_count_median": 2099.0,
+      "token_count_max": 2285,
+      "missing_common_fields": {}
+    },
+    "Physics": {
+      "files": 1,
+      "records": 17,
+      "classes": [
+        "A-level"
+      ],
+      "chapters": [
+        "5.6"
+      ],
+      "token_count_min": 324,
+      "token_count_median": 390,
+      "token_count_max": 571,
+      "missing_common_fields": {}
+    }
+  }
+}

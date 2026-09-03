@@ -1,0 +1,50 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node
+node_modules/
+.pnpm-store/
+dist/
+build/
+.output/
+.nitro/
+.tanstack/
+*.tsbuildinfo
+
+# Model and index artifacts — rebuildable, and large
+data/indices/
+data/embeddings/
+*.faiss
+*.index
+*.pkl
+hf_cache/
+.cache/
+
+# Test and coverage output
+coverage/
+htmlcov/
+.coverage
+playwright-report/
+test-results/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

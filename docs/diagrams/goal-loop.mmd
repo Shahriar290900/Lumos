@@ -1,0 +1,13 @@
+flowchart TD
+  Read[Read state + goal] --> Inspect[Inspect existing code]
+  Inspect --> Plan[Create implementation plan]
+  Plan --> Build[Implement smallest coherent slice]
+  Build --> Verify[Run tests / typecheck / build]
+  Verify --> Review[Self-review: QA + Security + UX + Architecture]
+  Review --> Decision{Pass?}
+  Decision -- No --> Fix[Fix defects]
+  Fix --> Verify
+  Decision -- Yes --> Record[Update state / checklist / decisions]
+  Record --> Next{Goals remaining?}
+  Next -- Yes --> Read
+  Next -- No --> Final[Final readiness review]

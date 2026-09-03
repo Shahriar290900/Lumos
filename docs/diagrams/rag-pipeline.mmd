@@ -1,0 +1,40 @@
+flowchart TB
+  subgraph INGEST[Ingestion]
+    Sources[Textbooks / Papers / Mark schemes / Examiner reports] --> Extract[Extract]
+    Extract --> Dedup[Deduplicate by provenance hash]
+    Dedup --> Normalise[Normalise to canonical chunk schema]
+    Normalise --> Clean[Clean: NFC, Bangla repair, boundary repair]
+    Clean --> Structure[Boundary + metadata + depends_on]
+    Structure --> Chunk[Chunk by document type]
+    Chunk --> Score[Quality score]
+    Score --> Embed[BGE-M3 embeddings]
+    Embed --> Lex[Postgres FTS document]
+    Lex --> Store[(Neon Postgres + pgvector)]
+    Store --> Report[Ingestion report - human review]
+    Report --> Publish[Registry: mark corpus published]
+  end
+
+  subgraph QUERY[Query time]
+    Q[Student query] --> Intent[Intent + curriculum identification]
+    Intent --> Reg{Registry: subject available?}
+    Reg -- no --> NotCovered[Explicit not-covered response - no retrieval]
+    Reg -- yes --> Filter[Metadata filter - SQL WHERE, before ranking]
+    Filter --> Lexical[Lexical: Postgres FTS, top 30]
+    Filter --> Semantic[Semantic: pgvector + BGE-M3, top 30]
+    Lexical --> RRF[Reciprocal Rank Fusion, k=60]
+    Semantic --> RRF
+    RRF --> Priority[Source priority policy - layer retained as a feature]
+    Priority --> Rerank[BGE-Reranker-v2-M3, top 20]
+    Rerank --> Gate{Confidence above threshold?}
+    Gate -- no --> Refuse[State the limitation - no invented citation]
+    Gate -- yes --> Context[Dependency-aware context assembly]
+    Context --> Gateway[Model Gateway]
+    Gateway --> Gen[Generation]
+    Gen --> Validate{Every citation resolves to a retrieved chunk?}
+    Validate -- no --> Regen[Reject and regenerate]
+    Regen --> Gateway
+    Validate -- yes --> Answer[Answer + sources + confidence]
+  end
+
+  Store -.-> Filter
+  Publish -.-> Reg

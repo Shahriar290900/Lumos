@@ -1,0 +1,26 @@
+flowchart LR
+  Client[Web / Mobile] --> Edge[Cloudflare edge]
+  Edge --> App[TanStack Start]
+  App --> API[FastAPI]
+  API --> Auth[Auth / session]
+  API --> Registry[Curriculum Registry]
+  API --> RAG[RAG Orchestrator]
+  API --> Practice[Practice Service]
+  Registry --> DB[(Neon PostgreSQL + pgvector + FTS)]
+  RAG --> DB
+  RAG --> RRF[RRF fusion]
+  RRF --> Priority[Source priority]
+  Priority --> Rank[BGE-Reranker-v2-M3]
+  Rank --> Context[Dependency-aware context]
+  Context --> Model[Model Gateway]
+  Model --> HF[HF endpoint]
+  Model --> Render[Render GPU]
+  Model --> Mock[Deterministic mock]
+  Model --> Ollama[Ollama - offline target]
+  Model --> Validate[Citation + confidence validation]
+  Validate --> API
+  Queue[Task queue] --> Worker[Ingestion worker]
+  Worker --> R2[(Cloudflare R2)]
+  Worker --> DB
+  Worker --> BGE[BGE-M3 via Model Gateway]
+  App --> R2

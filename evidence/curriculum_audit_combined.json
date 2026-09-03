@@ -1,0 +1,540 @@
+{
+  "roots": [
+    "/root/recon/Shikhbo-Local-App/raw_data",
+    "/root/recon/shikhbo-ai"
+  ],
+  "jsonl_files": 30,
+  "total_records": 317,
+  "unique_content_blocks": 180,
+  "records_sharing_content_with_another_record": 274,
+  "duplicate_content_groups": 137,
+  "duplicate_chunk_ids": {
+    "EDEXCEL-IAL-PHYS-5.6-P1-CH1": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P2-CH2": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P3-CH3": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P4-CH4": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P5-CH5": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P6-CH6": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P7-CH7": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P8-CH8": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P9-CH9": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P10-CH10": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P11-CH11": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P12-CH12": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P13-CH13": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P14-CH14": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P15-CH15": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P16-CH16": 2,
+    "EDEXCEL-IAL-PHYS-5.6-P17-CH17": 2,
+    "SSC-ICT-C1-P1-CH1": 2,
+    "SSC-ICT-C1-P1-CH2": 2,
+    "SSC-ICT-C1-P2-CH3": 2,
+    "SSC-ICT-C1-P2-CH4": 2,
+    "SSC-ICT-C1-P3-CH5": 2,
+    "SSC-ICT-C1-P3-CH6": 2,
+    "SSC-ICT-C1-P4-CH7": 2,
+    "SSC-ICT-C1-P4-CH8": 2,
+    "SSC-ICT-C1-P5-CH9": 2,
+    "SSC-ICT-C1-P5-CH10": 2,
+    "SSC-ICT-C1-P5-CH11": 2,
+    "SSC-ICT-C1-P6-CH12": 2,
+    "SSC-ICT-C2-P1-CH1": 2,
+    "SSC-ICT-C2-P1-CH2": 2,
+    "SSC-ICT-C2-P2-CH3": 2,
+    "SSC-ICT-C2-P2-CH4": 2,
+    "SSC-ICT-C2-P2-CH5": 2,
+    "SSC-ICT-C2-P3-CH6": 2,
+    "SSC-ICT-C2-P4-CH7": 2,
+    "SSC-ICT-C2-P6-CH8": 2,
+    "SSC-ICT-C2-P6-CH9": 2,
+    "SSC-ICT-C2-P7-CH10": 2,
+    "SSC-ICT-C2-P7-CH11": 2,
+    "SSC-ICT-C2-P8-CH12": 2,
+    "SSC-ICT-C2-P9-CH13": 2,
+    "SSC-ICT-C2-P9-CH14": 2,
+    "SSC-ICT-C2-P10-CH15": 2,
+    "SSC-ICT-C2-P10-CH16": 2,
+    "SSC-ICT-C2-P11-CH17": 2,
+    "SSC-ICT-C2-P11-CH18": 2,
+    "SSC-ICT-C2-P11-CH19": 2,
+    "SSC-ICT-C2-P12-CH20": 2,
+    "SSC-ICT-C2-P12-CH21": 2,
+    "SSC-ICT-C2-P13-CH22": 2,
+    "SSC-ICT-C2-P13-CH23": 2,
+    "SSC-ICT-C2-P13-CH24": 2,
+    "SSC-ICT-C2-P14-CH25": 2,
+    "SSC-ICT-C2-P14-CH26": 2,
+    "SSC-ICT-C2-P15-CH27": 2,
+    "SSC-ICT-C2-P15-CH28": 2,
+    "SSC-ICT-C3-P1-CH1": 2,
+    "SSC-ICT-C3-P1-CH2": 2,
+    "SSC-ICT-C3-P2-CH3": 2,
+    "SSC-ICT-C3-P2-CH4": 2,
+    "SSC-ICT-C3-P3-CH5": 2,
+    "SSC-ICT-C3-P3-CH6": 2,
+    "SSC-ICT-C3-P4-CH7": 2,
+    "SSC-ICT-C3-P5-CH8": 2,
+    "SSC-ICT-C4-P1-CH1": 2,
+    "SSC-ICT-C4-P1-CH2": 2,
+    "SSC-ICT-C4-P2-CH3": 2,
+    "SSC-ICT-C4-P2-CH4": 2,
+    "SSC-ICT-C4-P3-CH5": 2,
+    "SSC-ICT-C4-P4-CH6": 2,
+    "SSC-ICT-C4-P5-CH7": 2,
+    "SSC-ICT-C5-P1-CH1": 2,
+    "SSC-ICT-C5-P1-CH2": 2,
+    "SSC-ICT-C5-P2-CH3": 2,
+    "SSC-ICT-C5-P2-CH4": 2,
+    "SSC-ICT-C5-P3-CH5": 2,
+    "SSC-ICT-C5-P3-CH6": 2,
+    "SSC-ICT-C5-P4-CH7": 2,
+    "SSC-ICT-C5-P4-CH8": 2,
+    "SSC-ICT-C5-P5-CH9": 2,
+    "SSC-ICT-C5-P6-CH10": 2,
+    "SSC-ICT-C5-P7-CH11": 2,
+    "SSC-ICT-C5-P7-CH12": 2,
+    "SSC-ICT-C5-P8-CH13": 2,
+    "SSC-ICT-C5-P9-CH14": 2,
+    "SSC-ICT-C5-P9-CH15": 2,
+    "SSC-ICT-C5-P10-CH16": 2,
+    "SSC-ICT-C5-P11-CH17": 2,
+    "SSC-ICT-C5-P12-CH18": 2,
+    "SSC-ICT-C5-P12-CH19": 2,
+    "SSC-ICT-C5-P13-CH20": 2,
+    "SSC-ICT-C5-P13-CH21": 2,
+    "SSC-ICT-C5-P14-CH22": 2,
+    "SSC-ICT-C5-P14-CH23": 2,
+    "SSC-ICT-C5-P15-CH24": 2,
+    "SSC-ICT-C5-P16-CH25": 2,
+    "SSC-ICT-C5-P16-CH26": 2,
+    "SSC-ICT-C5-P17-CH27": 2,
+    "SSC-ICT-C5-P18-CH28": 2,
+    "SSC-ICT-C5-P18-CH29": 2,
+    "SSC-ICT-C5-P19-CH30": 2,
+    "SSC-ICT-C5-P19-CH31": 2,
+    "SSC-ICT-C5-P20-CH32": 2,
+    "SSC-ICT-C5-P20-CH33": 2,
+    "SSC-ICT-C5-P21-CH34": 2,
+    "SSC-ICT-C5-P22-CH35": 2,
+    "SSC-ICT-C5-P22-CH36": 2,
+    "SSC-ICT-C5-P23-CH37": 2,
+    "SSC-ICT-C5-P24-CH38": 2,
+    "SSC-ICT-C5-P24-CH39": 2,
+    "SSC-ICT-C5-P25-CH40": 2,
+    "SSC-ICT-C5-P25-CH41": 2,
+    "SSC-ICT-C5-P26-CH42": 2,
+    "SSC-ICT-C5-P27-CH43": 2,
+    "SSC-ICT-C5-P27-CH44": 2,
+    "SSC-ICT-C5-P28-CH45": 2,
+    "SSC-ICT-C5-P29-CH46": 2,
+    "SSC-ICT-C5-P29-CH47": 2,
+    "SSC-ICT-C5-P30-CH48": 2,
+    "SSC-ICT-C5-P31-CH49": 2,
+    "SSC-ICT-C5-P31-CH50": 2,
+    "SSC-ICT-C6-P1-CH1": 2,
+    "SSC-ICT-C6-P1-CH2": 2,
+    "SSC-ICT-C6-P2-CH3": 2,
+    "SSC-ICT-C6-P3-CH4": 2,
+    "SSC-ICT-C6-P3-CH5": 2,
+    "SSC-ICT-C6-P4-CH6": 2,
+    "SSC-ICT-C6-P4-CH7": 2,
+    "SSC-ICT-C6-P5-CH8": 2,
+    "SSC-ICT-C6-P5-CH9": 2,
+    "SSC-ICT-C6-P6-CH10": 2,
+    "SSC-ICT-C6-P6-CH11": 2,
+    "SSC-ICT-C6-P7-CH12": 2,
+    "SSC-ICT-C6-P8-CH13": 2,
+    "SSC-ICT-C6-P8-CH14": 2,
+    "SSC-ICT-C6-P9-CH15": 2
+  },
+  "parse_errors": [],
+  "subjects": {
+    "English": {
+      "files": 16,
+      "records": 43,
+      "classes": [
+        "SSC"
+      ],
+      "chapters": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16"
+      ],
+      "records_containing_bangla": 0,
+      "declared_token_count": {
+        "min": 33,
+        "median": 2061,
+        "max": 2248
+      },
+      "content_chars": {
+        "min": 177,
+        "median": 7900,
+        "max": 9595
+      },
+      "missing_common_fields": {}
+    },
+    "ICT": {
+      "files": 12,
+      "records": 240,
+      "classes": [
+        "SSC"
+      ],
+      "chapters": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "records_containing_bangla": 240,
+      "declared_token_count": {
+        "min": 1339,
+        "median": 2099.0,
+        "max": 2285
+      },
+      "content_chars": {
+        "min": 1101,
+        "median": 1766.5,
+        "max": 2569
+      },
+      "missing_common_fields": {}
+    },
+    "Physics": {
+      "files": 2,
+      "records": 34,
+      "classes": [
+        "A-level"
+      ],
+      "chapters": [
+        "5.6"
+      ],
+      "records_containing_bangla": 0,
+      "declared_token_count": {
+        "min": 324,
+        "median": 390.0,
+        "max": 571
+      },
+      "content_chars": {
+        "min": 1296,
+        "median": 1560.0,
+        "max": 2286
+      },
+      "missing_common_fields": {}
+    }
+  },
+  "per_file": [
+    {
+      "file": "raw_data/Astrophysics_Cosmology_RAG.jsonl",
+      "bytes": 36594,
+      "records": 17,
+      "content_chars": 27855,
+      "subjects": [
+        "Physics"
+      ]
+    },
+    {
+      "file": "raw_data/English Unit3.jsonl",
+      "bytes": 22370,
+      "records": 3,
+      "content_chars": 21543,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English Unit4.jsonl",
+      "bytes": 16277,
+      "records": 2,
+      "content_chars": 15713,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English Unit5.jsonl",
+      "bytes": 20752,
+      "records": 3,
+      "content_chars": 19821,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English Unit6.jsonl",
+      "bytes": 28317,
+      "records": 4,
+      "content_chars": 27233,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English Unit7.jsonl",
+      "bytes": 26238,
+      "records": 4,
+      "content_chars": 25063,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit 1.jsonl",
+      "bytes": 12819,
+      "records": 2,
+      "content_chars": 12088,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit 16.jsonl",
+      "bytes": 23072,
+      "records": 3,
+      "content_chars": 21950,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit10.jsonl",
+      "bytes": 13041,
+      "records": 2,
+      "content_chars": 12474,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit11.jsonl",
+      "bytes": 26077,
+      "records": 4,
+      "content_chars": 24728,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit12.jsonl",
+      "bytes": 19226,
+      "records": 3,
+      "content_chars": 18332,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit13.jsonl",
+      "bytes": 16584,
+      "records": 2,
+      "content_chars": 15980,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit14.jsonl",
+      "bytes": 13645,
+      "records": 2,
+      "content_chars": 13050,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit15.jsonl",
+      "bytes": 13715,
+      "records": 2,
+      "content_chars": 13128,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit2.jsonl",
+      "bytes": 23990,
+      "records": 3,
+      "content_chars": 23177,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit8.jsonl",
+      "bytes": 14229,
+      "records": 2,
+      "content_chars": 13688,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit9.jsonl",
+      "bytes": 12162,
+      "records": 2,
+      "content_chars": 11604,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C1.jsonl",
+      "bytes": 58207,
+      "records": 12,
+      "content_chars": 20066,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C2.jsonl",
+      "bytes": 141515,
+      "records": 28,
+      "content_chars": 48880,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C3.jsonl",
+      "bytes": 39065,
+      "records": 8,
+      "content_chars": 13927,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C4.jsonl",
+      "bytes": 33336,
+      "records": 7,
+      "content_chars": 11637,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C5.jsonl",
+      "bytes": 248481,
+      "records": 50,
+      "content_chars": 90461,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C6.jsonl",
+      "bytes": 77886,
+      "records": 15,
+      "content_chars": 31952,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "shikhbo-ai/Astrophysics_Cosmology_RAG.jsonl",
+      "bytes": 36594,
+      "records": 17,
+      "content_chars": 27855,
+      "subjects": [
+        "Physics"
+      ]
+    },
+    {
+      "file": "shikhbo-ai/ICT_C1.jsonl",
+      "bytes": 58207,
+      "records": 12,
+      "content_chars": 20066,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "shikhbo-ai/ICT_C2.jsonl",
+      "bytes": 141515,
+      "records": 28,
+      "content_chars": 48880,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "shikhbo-ai/ICT_C3.jsonl",
+      "bytes": 39065,
+      "records": 8,
+      "content_chars": 13927,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "shikhbo-ai/ICT_C4.jsonl",
+      "bytes": 33336,
+      "records": 7,
+      "content_chars": 11637,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "shikhbo-ai/ICT_C5.jsonl",
+      "bytes": 248481,
+      "records": 50,
+      "content_chars": 90461,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "shikhbo-ai/ICT_C6.jsonl",
+      "bytes": 77886,
+      "records": 15,
+      "content_chars": 31952,
+      "subjects": [
+        "ICT"
+      ]
+    }
+  ],
+  "ocr_artefact_hits": {
+    "bangla_duplicated_vowel_sign": {
+      "records": 146,
+      "example": "raw_data/ICT_C1.jsonl#SSC-ICT-C1-P1-CH1"
+    },
+    "broken_word_split": {
+      "records": 116,
+      "example": "raw_data/English Unit3.jsonl#SSC-English-C3-P1-CH1"
+    }
+  },
+  "canonical_schema_gaps": {
+    "explanation": "Number of legacy records missing each field required by the canonical Lumos chunk schema (docs/CHUNK_SCHEMA.md).",
+    "missing_counts": {
+      "curriculum": 317,
+      "curriculum_version": 317,
+      "language": 317,
+      "document_type": 317,
+      "source_id": 317,
+      "source_priority": 317,
+      "provenance_hash": 317,
+      "question_number": 317,
+      "sub_question": 317,
+      "marks": 317,
+      "parent_question_id": 317,
+      "depends_on": 317,
+      "ingestion_version": 317
+    },
+    "total_records": 317
+  }
+}

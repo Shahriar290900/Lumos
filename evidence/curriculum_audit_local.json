@@ -1,0 +1,338 @@
+{
+  "roots": [
+    "/root/recon/Shikhbo-Local-App/raw_data"
+  ],
+  "jsonl_files": 23,
+  "total_records": 180,
+  "unique_content_blocks": 180,
+  "records_sharing_content_with_another_record": 0,
+  "duplicate_content_groups": 0,
+  "duplicate_chunk_ids": {},
+  "parse_errors": [],
+  "subjects": {
+    "English": {
+      "files": 16,
+      "records": 43,
+      "classes": [
+        "SSC"
+      ],
+      "chapters": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16"
+      ],
+      "records_containing_bangla": 0,
+      "declared_token_count": {
+        "min": 33,
+        "median": 2061,
+        "max": 2248
+      },
+      "content_chars": {
+        "min": 177,
+        "median": 7900,
+        "max": 9595
+      },
+      "missing_common_fields": {}
+    },
+    "ICT": {
+      "files": 6,
+      "records": 120,
+      "classes": [
+        "SSC"
+      ],
+      "chapters": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "records_containing_bangla": 120,
+      "declared_token_count": {
+        "min": 1339,
+        "median": 2099.0,
+        "max": 2285
+      },
+      "content_chars": {
+        "min": 1101,
+        "median": 1766.5,
+        "max": 2569
+      },
+      "missing_common_fields": {}
+    },
+    "Physics": {
+      "files": 1,
+      "records": 17,
+      "classes": [
+        "A-level"
+      ],
+      "chapters": [
+        "5.6"
+      ],
+      "records_containing_bangla": 0,
+      "declared_token_count": {
+        "min": 324,
+        "median": 390,
+        "max": 571
+      },
+      "content_chars": {
+        "min": 1296,
+        "median": 1560,
+        "max": 2286
+      },
+      "missing_common_fields": {}
+    }
+  },
+  "per_file": [
+    {
+      "file": "raw_data/Astrophysics_Cosmology_RAG.jsonl",
+      "bytes": 36594,
+      "records": 17,
+      "content_chars": 27855,
+      "subjects": [
+        "Physics"
+      ]
+    },
+    {
+      "file": "raw_data/English Unit3.jsonl",
+      "bytes": 22370,
+      "records": 3,
+      "content_chars": 21543,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English Unit4.jsonl",
+      "bytes": 16277,
+      "records": 2,
+      "content_chars": 15713,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English Unit5.jsonl",
+      "bytes": 20752,
+      "records": 3,
+      "content_chars": 19821,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English Unit6.jsonl",
+      "bytes": 28317,
+      "records": 4,
+      "content_chars": 27233,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English Unit7.jsonl",
+      "bytes": 26238,
+      "records": 4,
+      "content_chars": 25063,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit 1.jsonl",
+      "bytes": 12819,
+      "records": 2,
+      "content_chars": 12088,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit 16.jsonl",
+      "bytes": 23072,
+      "records": 3,
+      "content_chars": 21950,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit10.jsonl",
+      "bytes": 13041,
+      "records": 2,
+      "content_chars": 12474,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit11.jsonl",
+      "bytes": 26077,
+      "records": 4,
+      "content_chars": 24728,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit12.jsonl",
+      "bytes": 19226,
+      "records": 3,
+      "content_chars": 18332,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit13.jsonl",
+      "bytes": 16584,
+      "records": 2,
+      "content_chars": 15980,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit14.jsonl",
+      "bytes": 13645,
+      "records": 2,
+      "content_chars": 13050,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit15.jsonl",
+      "bytes": 13715,
+      "records": 2,
+      "content_chars": 13128,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit2.jsonl",
+      "bytes": 23990,
+      "records": 3,
+      "content_chars": 23177,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit8.jsonl",
+      "bytes": 14229,
+      "records": 2,
+      "content_chars": 13688,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/English unit9.jsonl",
+      "bytes": 12162,
+      "records": 2,
+      "content_chars": 11604,
+      "subjects": [
+        "English"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C1.jsonl",
+      "bytes": 58207,
+      "records": 12,
+      "content_chars": 20066,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C2.jsonl",
+      "bytes": 141515,
+      "records": 28,
+      "content_chars": 48880,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C3.jsonl",
+      "bytes": 39065,
+      "records": 8,
+      "content_chars": 13927,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C4.jsonl",
+      "bytes": 33336,
+      "records": 7,
+      "content_chars": 11637,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C5.jsonl",
+      "bytes": 248481,
+      "records": 50,
+      "content_chars": 90461,
+      "subjects": [
+        "ICT"
+      ]
+    },
+    {
+      "file": "raw_data/ICT_C6.jsonl",
+      "bytes": 77886,
+      "records": 15,
+      "content_chars": 31952,
+      "subjects": [
+        "ICT"
+      ]
+    }
+  ],
+  "ocr_artefact_hits": {
+    "bangla_duplicated_vowel_sign": {
+      "records": 73,
+      "example": "raw_data/ICT_C1.jsonl#SSC-ICT-C1-P1-CH1"
+    },
+    "broken_word_split": {
+      "records": 66,
+      "example": "raw_data/English Unit3.jsonl#SSC-English-C3-P1-CH1"
+    }
+  },
+  "canonical_schema_gaps": {
+    "explanation": "Number of legacy records missing each field required by the canonical Lumos chunk schema (docs/CHUNK_SCHEMA.md).",
+    "missing_counts": {
+      "curriculum": 180,
+      "curriculum_version": 180,
+      "language": 180,
+      "document_type": 180,
+      "source_id": 180,
+      "source_priority": 180,
+      "provenance_hash": 180,
+      "question_number": 180,
+      "sub_question": 180,
+      "marks": 180,
+      "parent_question_id": 180,
+      "depends_on": 180,
+      "ingestion_version": 180
+    },
+    "total_records": 180
+  }
+}
