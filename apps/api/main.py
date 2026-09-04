@@ -131,6 +131,25 @@ def health() -> dict[str, Any]:
         out["database"] = "unreachable"
         out["database_error"] = f"{type(exc).__name__}"
         out["status"] = "degraded"
+
+    # The model boundary reports itself, including whether answers would be
+    # mocked. A client that cannot tell a real answer from a mock one is exactly
+    # the failure this project exists to avoid, so it is surfaced here rather
+    # than left for someone to infer from configuration.
+    try:
+        from services.models import ModelGateway
+        gateway = ModelGateway.from_env()
+        out["model_provider"] = gateway.provider_name
+        out["generation"] = "mock" if gateway.is_mock else "live"
+        if gateway.is_mock:
+            out["status"] = "degraded"
+            out["generation_note"] = (
+                "No generation model is configured, so the tutor cannot answer. "
+                "Retrieval and citations are real; explanations are not.")
+    except Exception as exc:  # noqa: BLE001
+        out["model_provider"] = "misconfigured"
+        out["model_error"] = f"{type(exc).__name__}: {exc}"[:200]
+        out["status"] = "degraded"
     return out
 
 

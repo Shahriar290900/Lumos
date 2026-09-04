@@ -7,8 +7,8 @@
 | Cloudflare | DNS, CDN, Workers | Yes | `CLOUDFLARE_ACCOUNT_ID`, scoped `CLOUDFLARE_API_TOKEN` | `wrangler whoami` | **Not provisioned** (BLOCK-003) |
 | R2 | object storage | Yes | `R2_BUCKET_NAME`, `R2_ENDPOINT`, key pair or Worker binding | upload/read smoke test | **Not provisioned** (BLOCK-003) |
 | Render | API service, ingestion worker, GPU | Yes | service credentials | `/health` returns 200 | **Not provisioned** (BLOCK-004) |
-| Hugging Face | remote inference (`gemma4:e4b`), model artifacts | Recommended for dev | `HF_TOKEN`, endpoint URL | inference smoke test | Token held; **no endpoint** (BLOCK-005) |
-| Model Gateway | internal abstraction over HF / Render / mock / Ollama | Yes | `AI_PROVIDER`, `AI_API_URL`, `AI_API_KEY`, `CHAT_MODEL` | gateway health check | **Not built** (LUMOS-004F) |
+| Hugging Face | embeddings + reranking (serverless), generation (needs an endpoint) | Yes | `HF_TOKEN` with `inference.serverless.write` | verified 2026-09-04 | **Embeddings and reranking work.** Generation **not served** (BLOCK-005) |
+| Model Gateway | internal abstraction over HF / Render / mock / Ollama | Yes | `AI_PROVIDER`, `AI_API_URL`, `AI_API_KEY`, `CHAT_MODEL` | `GET /health` reports provider and whether generation is mocked | **Built** (LUMOS-004F) — mock and huggingface providers |
 | Sentry | error monitoring | Recommended | `SENTRY_DSN` | deliberate test event | Not configured |
 | Email | account, reset, contact | Recommended | provider key | sandbox send | **Not decided.** Legacy used Gmail SMTP app passwords — not production-grade |
 | Payments | subscriptions | No | provider-specific | — | Later |
@@ -19,6 +19,28 @@
 - Populate secrets in the provider dashboard and in a local `.env` that is gitignored. `.env.example` documents every variable's purpose, whether it is required, where it is used, and its development and production behaviour.
 - API tokens are scoped to least privilege. A global Cloudflare key is not acceptable where a scoped token will do.
 - No credential ever reaches the browser. A build-time check asserts that no `AI_*` or provider key appears in a client bundle.
+
+## Verified 2026-09-04, against the live endpoint
+
+Measured with the real token, not read from documentation.
+
+| Model | Pipeline | Result |
+|---|---|---|
+| `BAAI/bge-m3` | `feature-extraction` | **Works** — 1024 dims, Bangla and English |
+| `BAAI/bge-reranker-v2-m3` | `sentence-similarity` | **Works** — 0.935 relevant · 0.800 related · 0.562 unrelated |
+| `google/gemma-4-E4B-it` | `chat/completions` | **Not served by any provider** |
+
+The generation gap is specific and is not a permissions problem. The repository
+exists, is ungated and has 4.85M downloads, but its pipeline tag is
+`any-to-any`, and the router answers *"not a chat model"*. Serving it needs a
+dedicated Inference Endpoint or a rented GPU running Ollama — a spending
+decision, tracked as BLOCK-005.
+
+Note the tag mapping. `CHAT_MODEL=gemma4:e4b` is the Ollama spelling; the
+Hugging Face provider translates it to `google/gemma-4-E4B-it`. Passing the
+Ollama tag through unmapped makes the router read `e4b` after the colon as a
+provider name and reject it with an error that says nothing about the real
+problem.
 
 ## Development inference mode
 

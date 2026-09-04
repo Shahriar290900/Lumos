@@ -21,7 +21,7 @@ A goal is complete only when its acceptance criteria are met **and** the evidenc
   - [ ] **LUMOS-004C.3** Textbook OCR, 225 pages — *grounding only; never served (ADR-026)*
 - [ ] LUMOS-004D Licence and provenance registry
 - [!] LUMOS-004E Retrieval evaluation set per available corpus — *needs subject-teacher review*
-- [ ] **LUMOS-004F Model Gateway + mock provider + `gemma4:e4b`** — *registered here, not as 004D (ADR-024). Not blocked by BLOCK-005: the mock provider needs no credential*
+- [x] **LUMOS-004F Model Gateway + mock provider + `gemma4:e4b`** — evidence: `services/models/`, 27 tests; embeddings and reranking verified live on Hugging Face, generation blocked on BLOCK-005
 
 ## Phase 1 — Product MVP
 - [!] LUMOS-005 Authentication + roles — *blocked: BLOCK-006, BLOCK-007*
