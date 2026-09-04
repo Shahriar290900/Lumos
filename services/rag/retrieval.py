@@ -49,6 +49,27 @@ WEIGHTS = {
 
 BENGALI_RANGE = ("ঀ", "৿")
 
+# Reranking is OFF by default, and that is a measurement, not a preference.
+#
+# ADR-009 puts a cross-encoder on the fused pool, and it should be there. But
+# `BAAI/bge-reranker-v2-m3` is not reachable as a cross-encoder over Hugging
+# Face serverless: the `text-classification` pipeline rejects a text pair, and
+# the `sentence-similarity` pipeline answers — with bi-encoder cosine from the
+# reranker's encoder, which is not what a cross-encoder computes. It returns
+# ~0.9 for almost everything.
+#
+# Measured on 19 AS Physics questions by known-item retrieval:
+#
+#     rerank OFF   recall@1 = 1.000   recall@5 = 1.000
+#     rerank ON    recall@1 = 0.053   recall@5 = 0.526
+#
+# The fusion is exact and the "reranker" was scrambling it. A stage that makes
+# retrieval nineteen times worse at rank 1 must not run merely because the
+# architecture diagram has a box for it. Set RERANK_ENABLED=1 once a real
+# cross-encoder endpoint exists — a dedicated Inference Endpoint or a local
+# sentence-transformers CrossEncoder — and re-measure before trusting it.
+RERANK_ENABLED = os.environ.get("RERANK_ENABLED", "").strip().lower() in ("1", "true", "yes")
+
 
 def detect_language(text: str) -> str:
     """Bangla if any Bengali codepoint appears. An English gloss inside a Bangla
@@ -229,7 +250,8 @@ class HybridRetriever:
     # ── fusion ───────────────────────────────────────────────────────────────
 
     def retrieve(self, query: str, *, offering_id: str, limit: int = 8,
-                 top_n: int = RETRIEVAL_TOP_N, rerank: bool = True) -> RetrievalResult:
+                 top_n: int = RETRIEVAL_TOP_N,
+                 rerank: bool = RERANK_ENABLED) -> RetrievalResult:
         """
         Retrieve, fuse and optionally rerank. Returns at most `limit` candidates.
 

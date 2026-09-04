@@ -136,10 +136,32 @@ def main() -> int:
         for start in range(0, len(todo), args.batch_size):
             batch = todo[start:start + args.batch_size]
             vectors = gateway.embed([c["text"] for c in batch], batch_size=args.batch_size)
-            write_embeddings(conn, [
-                ("[" + ",".join(f"{v:.8f}" for v in emb.vector) + "]", model, chunk["id"])
-                for chunk, emb in zip(batch, vectors)])
-            conn.commit()
+            rows = [("[" + ",".join(f"{v:.8f}" for v in emb.vector) + "]", model, chunk["id"])
+                    for chunk, emb in zip(batch, vectors)]
+
+            # A long embedding run outlives a Neon connection: a serverless
+            # endpoint over the public internet will drop one eventually, and it
+            # did — "SSL SYSCALL error: EOF detected" at chunk 128 of 332.
+            # Losing an hour of paid embedding calls to a transient socket is
+            # not acceptable, so reconnect and retry the batch. The work already
+            # committed is kept, because this script only ever asks for chunks
+            # that still need embedding.
+            for attempt in range(3):
+                try:
+                    write_embeddings(conn, rows)
+                    conn.commit()
+                    break
+                except psycopg.OperationalError as exc:
+                    if attempt == 2:
+                        raise
+                    print(f"  reconnecting after {type(exc).__name__}", flush=True)
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
+                    time.sleep(2 ** attempt)
+                    conn = psycopg.connect(url)
+
             done += len(batch)
             print(f"  {done}/{len(todo)}  ({time.monotonic() - started:.0f}s)", flush=True)
 

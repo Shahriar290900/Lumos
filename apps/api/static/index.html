@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lumos — Lights the Way to Knowledge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#05070f; --ink-2:#0a0e1c; --ink-3:#121830;
+  --gold:#d9ac5f; --gold-bright:#f0cd8a; --gold-dim:#8a6d3c;
+  --text:#e8e4dc; --text-dim:#9aa0b4; --line:rgba(217,172,95,.18);
+  --ok:#6fbf8b; --warn:#d9a05f; --bad:#d97a7a;
+  --serif:"Cormorant Garamond",Georgia,serif;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink); color:var(--text); font-family:var(--sans);
+  font-size:15px; line-height:1.6; min-height:100vh; overflow-x:hidden;
+}
+/* the cursor-borne light: "Move your mouse. Cast Lumos." */
+#glow{
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:radial-gradient(420px circle at var(--mx,50%) var(--my,30%),
+    rgba(217,172,95,.10), rgba(217,172,95,.03) 40%, transparent 68%);
+  transition:background .18s ease-out;
+}
+@media (prefers-reduced-motion:reduce){ #glow{display:none} }
+
+header{
+  position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:28px;
+  padding:16px 28px; backdrop-filter:blur(14px);
+  background:linear-gradient(180deg,rgba(5,7,15,.94),rgba(5,7,15,.72));
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex; align-items:center; gap:12px; text-decoration:none}
+.sigil{
+  width:34px;height:34px;border:1px solid var(--gold);border-radius:50%;
+  display:grid;place-items:center;color:var(--gold);font-size:17px;
+  box-shadow:0 0 22px rgba(217,172,95,.22) inset;
+}
+.brand b{font-family:var(--serif);font-size:22px;letter-spacing:.22em;color:var(--gold-bright);font-weight:500}
+.brand small{display:block;font-size:8.5px;letter-spacing:.42em;color:var(--gold-dim);margin-top:-3px}
+nav{display:flex;gap:22px;margin-left:12px;flex-wrap:wrap}
+nav a{color:var(--text-dim);text-decoration:none;font-size:13.5px;padding:4px 0;border-bottom:1.5px solid transparent}
+nav a:hover{color:var(--text)}
+nav a[aria-current]{color:var(--gold-bright);border-bottom-color:var(--gold)}
+.spacer{flex:1}
+.state{
+  font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--text-dim);
+  white-space:nowrap;
+}
+.state b{color:var(--gold-bright);font-weight:500}
+
+main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 28px 96px}
+
+.hero{padding:70px 0 46px;border-bottom:1px solid var(--line)}
+.kicker{font-size:11.5px;letter-spacing:.46em;color:var(--gold-dim);text-transform:uppercase}
+h1{
+  font-family:var(--serif);font-weight:400;font-size:clamp(58px,11vw,116px);
+  letter-spacing:.11em;margin:.10em 0 .02em;
+  background:linear-gradient(180deg,#fff8ea,var(--gold) 62%,var(--gold-dim));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.tagline{font-family:var(--serif);font-size:clamp(17px,2.5vw,26px);letter-spacing:.16em;color:var(--text);opacity:.9}
+.lede{max-width:52ch;color:var(--text-dim);margin-top:16px}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:34px}
+.card{
+  border:1px solid var(--line);border-radius:10px;padding:18px 16px;
+  background:linear-gradient(180deg,rgba(18,24,48,.55),rgba(10,14,28,.35));
+}
+.card h3{margin:8px 0 4px;font-size:14.5px;font-weight:600;color:var(--text)}
+.card p{margin:0;font-size:12.5px;color:var(--text-dim)}
+.card .ico{font-size:19px;color:var(--gold)}
+
+section{padding:44px 0;border-bottom:1px solid var(--line)}
+h2{font-family:var(--serif);font-weight:500;font-size:29px;letter-spacing:.05em;margin:0 0 6px;color:var(--gold-bright)}
+.sub{color:var(--text-dim);margin:0 0 22px;font-size:13.5px;max-width:68ch}
+
+.ask{display:flex;gap:10px;flex-wrap:wrap}
+select,input[type=text],button{font-family:var(--sans);font-size:14px}
+select,input[type=text]{
+  background:var(--ink-2);border:1px solid var(--line);border-radius:8px;
+  color:var(--text);padding:12px 14px;
+}
+input[type=text]{flex:1;min-width:260px}
+input[type=text]:focus,select:focus{outline:none;border-color:var(--gold-dim);box-shadow:0 0 0 3px rgba(217,172,95,.10)}
+button{
+  background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:#241a08;
+  border:none;border-radius:8px;padding:12px 22px;font-weight:600;cursor:pointer;letter-spacing:.02em;
+}
+button:disabled{opacity:.5;cursor:not-allowed}
+.examples{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  font-size:12px;color:var(--text-dim);border:1px solid var(--line);border-radius:999px;
+  padding:5px 12px;cursor:pointer;background:transparent;
+}
+.chip:hover{color:var(--gold-bright);border-color:var(--gold-dim)}
+
+#out{margin-top:26px;display:none}
+.banner{border-radius:9px;padding:13px 16px;font-size:13.5px;margin-bottom:18px;border:1px solid}
+.banner.warn{border-color:rgba(217,160,95,.4);background:rgba(217,160,95,.09);color:#f0d0a6}
+.banner.bad{border-color:rgba(217,122,122,.4);background:rgba(217,122,122,.09);color:#f0b6b6}
+.banner.ok{border-color:rgba(111,191,139,.35);background:rgba(111,191,139,.08);color:#bfe8cf}
+.answer{
+  border:1px solid var(--line);border-radius:11px;padding:22px 24px;
+  background:linear-gradient(180deg,rgba(18,24,48,.5),rgba(10,14,28,.3));white-space:pre-wrap;
+}
+.cite{
+  display:inline-block;min-width:20px;text-align:center;font-size:11px;font-weight:600;
+  color:#241a08;background:var(--gold);border-radius:4px;padding:1px 5px;margin:0 2px;
+}
+h4{margin:26px 0 10px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-dim)}
+ol.sources{list-style:none;padding:0;margin:0;display:grid;gap:9px}
+ol.sources li{
+  border:1px solid var(--line);border-radius:8px;padding:11px 14px;font-size:13px;
+  display:flex;gap:12px;align-items:flex-start;background:rgba(10,14,28,.4);
+}
+.meta{color:var(--text-dim);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--gold-dim);font-weight:500;font-size:11px;letter-spacing:.13em;text-transform:uppercase}
+.pill{font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid}
+.pill.no{color:var(--warn);border-color:rgba(217,160,95,.4)}
+.pill.yes{color:var(--ok);border-color:rgba(111,191,139,.4)}
+.reason{font-size:11.5px;color:var(--text-dim);font-family:ui-monospace,monospace}
+footer{max-width:1180px;margin:0 auto;padding:26px 28px 60px;color:var(--text-dim);font-size:12px}
+.scroller{overflow-x:auto}
+</style>
+</head>
+<body>
+<div id="glow"></div>
+
+<header>
+  <a class="brand" href="#"><span class="sigil">✦</span>
+    <span><b>LUMOS</b><small>LEARNERS</small></span></a>
+  <nav>
+    <a href="#tutor" aria-current="page">AI Tutor</a>
+    <a href="#curriculum">Curriculum</a>
+    <a href="#how">How it works</a>
+  </nav>
+  <span class="spacer"></span>
+  <span class="state" id="state">checking…</span>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="kicker">A single spell</div>
+    <h1>LUMOS</h1>
+    <div class="tagline">LIGHTS THE WAY TO KNOWLEDGE</div>
+    <p class="lede">A curriculum-grounded tutor for Bangladeshi students. Every citation
+      resolves to a real page in a real document, and insufficient evidence produces a
+      stated limitation rather than a confident guess.</p>
+    <div class="cards">
+      <div class="card"><div class="ico">✦</div><h3>Grounded</h3><p>Answers come only from a declared curriculum corpus.</p></div>
+      <div class="card"><div class="ico">❖</div><h3>Cited</h3><p>Every citation resolves to a chunk retrieved this turn.</p></div>
+      <div class="card"><div class="ico">◈</div><h3>Bilingual</h3><p>Bangla and English, with language-aware retrieval.</p></div>
+      <div class="card"><div class="ico">✧</div><h3>Honest</h3><p>A subject with no corpus says so instead of pretending.</p></div>
+    </div>
+  </div>
+
+  <section id="tutor">
+    <h2>Ask the tutor</h2>
+    <p class="sub">Pick a subject and ask. If the registry has not cleared a subject, the
+      request is refused before any retrieval happens — that refusal is the product
+      working, not failing.</p>
+    <div class="ask">
+      <select id="offering"><option>loading…</option></select>
+      <input type="text" id="q" placeholder="How do I calculate gravitational potential energy?" />
+      <button id="go">Cast Lumos</button>
+    </div>
+    <div class="examples" id="examples"></div>
+    <div id="out"></div>
+  </section>
+
+  <section id="curriculum">
+    <h2>Curriculum registry</h2>
+    <p class="sub">The single source of availability. A subject is available only when it has
+      indexed chunks, a known licence, and a passing evaluation — never because a card exists.</p>
+    <div class="scroller"><table id="reg"><thead><tr>
+      <th>Subject</th><th>Level</th><th>Indexed</th><th>Available</th><th>Blocked by</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section id="how">
+    <h2>How an answer is built</h2>
+    <p class="sub">Five stages. Each one can refuse, and a refusal is a real answer.</p>
+    <div class="cards">
+      <div class="card"><div class="ico">1</div><h3>Availability</h3><p>The registry decides. Nothing downstream runs for a subject it has not cleared.</p></div>
+      <div class="card"><div class="ico">2</div><h3>Retrieval</h3><p>Lexical and semantic in one SQL query, fused with RRF at k=60.</p></div>
+      <div class="card"><div class="ico">3</div><h3>Reranking</h3><p>A cross-encoder scores the fused pool; source priority is a feature, not a filter.</p></div>
+      <div class="card"><div class="ico">4</div><h3>Generation</h3><p>One model, gemma4:e4b. No silent substitution when it is unavailable.</p></div>
+      <div class="card"><div class="ico">5</div><h3>Validation</h3><p>A citation that does not resolve to this turn's context is stripped.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Lumos · BCOLBD 2026 · Curriculum material is used as retrieval context and is never
+  redistributed. <span id="foot"></span>
+</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+addEventListener("pointermove", e => {
+  document.documentElement.style.setProperty("--mx", e.clientX + "px");
+  document.documentElement.style.setProperty("--my", e.clientY + "px");
+}, {passive:true});
+
+let OFFERINGS = [];
+
+async function boot(){
+  try{
+    const h = await (await fetch("/health")).json();
+    const gen = h.generation === "live"
+      ? `<b>${esc(h.model_provider)}</b> · live`
+      : `<b>mock</b> · no generation model`;
+    $("#state").innerHTML = `db ${esc(h.database)} · ${gen}`;
+    $("#foot").textContent = `API ${h.version} · database ${h.database} · generation ${h.generation}`;
+  }catch{ $("#state").textContent = "api unreachable"; }
+
+  try{
+    const c = await (await fetch("/curriculum")).json();
+    OFFERINGS = c.offerings;
+    const tb = $("#reg tbody"); tb.innerHTML = "";
+    const sel = $("#offering"); sel.innerHTML = "";
+    for(const o of OFFERINGS){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${esc(o.subject_name_en)}</td><td>${esc(o.level_name)}</td>
+        <td>${o.indexed_chunk_count ?? 0}</td>
+        <td><span class="pill ${o.is_available?"yes":"no"}">${o.is_available?"available":"not yet"}</span></td>
+        <td class="reason">${esc((o.blocked_reasons||[]).join(" · ")) || "—"}</td>`;
+      tb.appendChild(tr);
+      const opt = document.createElement("option");
+      opt.value = o.slug;
+      opt.textContent = `${o.subject_name_en} — ${o.level_name}` + (o.is_available ? "" : "  (not yet available)");
+      sel.appendChild(opt);
+    }
+    const first = OFFERINGS.find(o => o.is_available) || OFFERINGS[0];
+    if(first) sel.value = first.slug;
+  }catch(e){ $("#reg tbody").innerHTML = `<tr><td colspan="5">could not load: ${esc(e.message)}</td></tr>`; }
+
+  const ex = ["How do I calculate gravitational potential energy?",
+              "Explain the photoelectric effect and work function.",
+              "তথ্য ও যোগাযোগ প্রযুক্তি কী?"];
+  $("#examples").innerHTML = ex.map(q => `<button class="chip">${esc(q)}</button>`).join("");
+  document.querySelectorAll(".chip").forEach(b =>
+    b.onclick = () => { $("#q").value = b.textContent; ask(); });
+}
+
+function renderCitations(text, citations){
+  const byMarker = new Map(citations.map(c => [c.marker, c]));
+  return esc(text).replace(/\[(\d{1,2})\]/g, (m, n) =>
+    byMarker.has(+n) ? `<span class="cite">${n}</span>` : m);
+}
+
+async function ask(){
+  const slug = $("#offering").value, q = $("#q").value.trim();
+  if(!q) return;
+  const out = $("#out"); out.style.display = "block";
+  out.innerHTML = `<div class="banner ok">Casting…</div>`;
+  $("#go").disabled = true;
+  try{
+    const r = await fetch("/tutor/ask", {method:"POST",
+      headers:{"Content-Type":"application/json"}, body: JSON.stringify({query:q, slug})});
+    const d = await r.json();
+
+    if(r.status === 409){
+      const x = d.detail;
+      out.innerHTML = `<div class="banner warn"><b>Not available yet.</b> ${esc(x.message_en||"")}
+        <div class="reason" style="margin-top:8px">blocked by: ${esc((x.blocked_reasons||[]).join(" · "))}</div>
+        <div class="meta" style="margin-top:8px">The registry refused this before any retrieval ran. That is the coverage gate working.</div></div>`;
+      return;
+    }
+    if(!r.ok){ out.innerHTML = `<div class="banner bad">${esc(JSON.stringify(d.detail||d))}</div>`; return; }
+
+    let head = "";
+    if(d.is_mock) head = `<div class="banner warn"><b>Mocked explanation.</b>
+      Retrieval and the sources below are real. No generation model is configured, so the prose is not a tutoring answer.</div>`;
+    else if(d.limitation) head = `<div class="banner warn"><b>Stated limitation:</b> ${esc(d.limitation)}</div>`;
+    else if(d.grounded) head = `<div class="banner ok"><b>Grounded.</b>
+      ${d.citations.length} citation(s), all resolving to passages retrieved this turn.</div>`;
+
+    const src = (d.citations||[]).map(c => `<li><span class="cite">${c.marker}</span>
+      <span><b>${esc(c.document||c.offering)}</b>
+      <span class="meta">${[c.paper_code, c.question_number?("Q"+c.question_number):null,
+        c.page?("page "+c.page):null, c.section].filter(Boolean).map(esc).join(" · ")}</span></span></li>`).join("");
+
+    const rt = d.retrieval||{};
+    out.innerHTML = head
+      + `<div class="answer">${renderCitations(d.answer||"", d.citations||[])}</div>`
+      + (src ? `<h4>Sources</h4><ol class="sources">${src}</ol>` : "")
+      + `<h4>Retrieval</h4><div class="meta">language ${esc(rt.language)} ·
+         lexical ${rt.lexical_found} · semantic ${rt.semantic_found} ·
+         reranked ${rt.reranked} · confidence ${d.confidence==null?"—":d.confidence.toFixed(3)}</div>`
+      + ((d.warnings||[]).length ? `<h4>Warnings</h4><div class="reason">${d.warnings.map(esc).join("<br>")}</div>` : "");
+  }catch(e){
+    out.innerHTML = `<div class="banner bad">request failed: ${esc(e.message)}</div>`;
+  }finally{ $("#go").disabled = false; }
+}
+
+$("#go").onclick = ask;
+$("#q").addEventListener("keydown", e => { if(e.key === "Enter") ask(); });
+boot();
+</script>
+</body>
+</html>

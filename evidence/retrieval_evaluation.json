@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-09-04T15:07:07+00:00",
+  "method": "known-item retrieval; query built from each chunk's own distinctive terms, ground truth is that chunk",
+  "measures": "retrieval only \u2014 answer quality still needs a subject teacher (LUMOS-004E)",
+  "embedding_model": "BAAI/bge-m3",
+  "provider": "huggingface",
+  "results": [
+    {
+      "slug": "edexcel-ial/physics/international-as",
+      "chunks_total": 41,
+      "evaluated": 40,
+      "skipped_too_little_vocabulary": 1,
+      "k": 5,
+      "recall_at_1": 1.0,
+      "recall_at_5": 1.0,
+      "mrr": 1.0,
+      "threshold": 0.8,
+      "passed": true,
+      "evaluation_status": "passed"
+    }
+  ]
+}

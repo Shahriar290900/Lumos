@@ -20,8 +20,10 @@ from typing import Any, Iterator
 
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Query, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field, model_validator
+
+from pathlib import Path
 
 from services.curriculum.registry import (
     CurriculumRegistry,
@@ -243,19 +245,44 @@ def tutor_ask(
             },
         )
 
-    # Gate passed. Retrieval is LUMOS-008 and does not exist, so say so.
-    return JSONResponse(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        content={
-            "error": "retrieval_not_implemented",
-            "message": (
-                "The coverage gate passed for this offering, but hybrid retrieval "
-                "is not implemented yet (LUMOS-008)."
-            ),
-            "offering": {
-                "slug": offering.slug,
-                "indexed_chunk_count": offering.indexed_chunk_count,
-                "source_priority_policy": list(offering.source_priority_policy),
-            },
-        },
-    )
+    # Gate passed. Retrieve, ground, and validate every citation.
+    #
+    # The order matters and is the whole design: availability first (nothing
+    # downstream runs for an offering the registry has not cleared), retrieval
+    # second, generation last, and citation validation after that. An answer
+    # whose citations do not resolve to this turn's context is not shown as
+    # grounded (ADR-010).
+    from services.models import ModelGateway
+    from services.rag.retrieval import HybridRetriever
+    from services.rag.tutor import Tutor
+
+    gateway = ModelGateway.from_env()
+    with _connection() as conn:
+        tutor = Tutor(HybridRetriever(conn, gateway), gateway)
+        answer = tutor.ask(req.query, offering_id=offering.offering_id)
+
+    payload = answer.as_dict()
+    payload["offering"] = {
+        "slug": offering.slug,
+        "subject": offering.subject_name_en,
+        "level": offering.level_name,
+    }
+    return JSONResponse(status_code=200, content=payload)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# The interface
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Served by the API rather than a separate front end, deliberately. A Hugging
+# Face Space is one container, and splitting the interface out would mean a
+# second deployment and a CORS boundary for no benefit at this stage. The page
+# is static: it reads /health and /curriculum and posts to /tutor/ask, so it
+# cannot show a subject as available unless the registry says so (ADR-011).
+
+_STATIC = Path(__file__).resolve().parent / "static"
+
+
+@app.get("/", include_in_schema=False)
+def home() -> FileResponse:
+    return FileResponse(_STATIC / "index.html")

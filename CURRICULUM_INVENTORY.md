@@ -14,7 +14,7 @@ Generated: 2026-09-04
 
 | Offering | Curriculum | Subject | Level | Status | Sources | Canonical | Indexed | Available |
 |---|---|---|---|---|---:|---:|---:|---|
-| `edexcel-ial/physics/international-as` | EDEXCEL_IAL | Physics | International AS | in preparation | 10 | 41 | 41 | no |
+| `edexcel-ial/physics/international-as` | EDEXCEL_IAL | Physics | International AS | available | 10 | 41 | 41 | yes |
 | `edexcel-ial/physics/a2` | EDEXCEL_IAL | Physics | International A2 | planned — no corpus | 10 | 59 | 59 | no |
 | `nctb/bangla/ssc` | NCTB | Bangla | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 | `nctb/biology/ssc` | NCTB | Biology | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
@@ -26,13 +26,12 @@ Generated: 2026-09-04
 
 Three counts, three different things (ADR-014, ADR-020): **audited** is what an auditor found in the source material, **canonical** is what normalisation produced, **indexed** is what is embedded and lexically searchable. Only the last one can make a subject available.
 
-**No offering is currently available.** Nothing has been ingested, so nothing may be queried. The API refuses every offering above before retrieval runs.
+**1 offering(s) available.**
 
 ### Why each offering is unavailable
 
 | Offering | Blocked by |
 |---|---|
-| `edexcel-ial/physics/international-as` | publication_status=in_preparation, evaluation_status=none |
 | `edexcel-ial/physics/a2` | publication_status=planned, evaluation_status=none |
 | `nctb/bangla/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
 | `nctb/biology/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
