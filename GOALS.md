@@ -17,8 +17,8 @@ A goal is complete only when its acceptance criteria are met **and** the evidenc
 - [x] **LUMOS-004B.1 Bootstrap fixes and model policy** — evidence below
 - [ ] **LUMOS-004C Corpus cleaning: Bangla repair, boundary repair, re-chunking** ← **NEXT GOAL**, in three sub-goals (ADR-025)
   - [x] **LUMOS-004C.1** Legacy text repair: Bangla, English re-chunking, glyph and truncation repair — evidence below
-  - [ ] **LUMOS-004C.2** Mark-scheme and examiner-report adapters, cross-document linking, and the **document delivery column** (ADR-026)
-  - [ ] **LUMOS-004C.3** Textbook OCR, 225 pages — *grounding only; never served (ADR-026)*
+  - [~] **LUMOS-004C.2** Mark-scheme parser done and verified against all six papers (AS: 19/19, 18/18, 4/4); delivery column shipped in migration 0003. *Not loaded into the database, no unit tests, examiner-report adapter not built*
+  - [~] **LUMOS-004C.3** Textbook OCR — `services/ingestion/ocr.py` written, **never executed**: tesseract is not installed on the development machine. Grounding only; never served (ADR-026)
 - [ ] LUMOS-004D Licence and provenance registry
 - [!] LUMOS-004E Retrieval evaluation set per available corpus — *needs subject-teacher review*
 - [x] **LUMOS-004F Model Gateway + mock provider + `gemma4:e4b`** — evidence: `services/models/`, 27 tests; embeddings and reranking verified live on Hugging Face, generation blocked on BLOCK-005

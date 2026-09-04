@@ -18,3 +18,9 @@ httpx==0.28.1
 
 # PDF inspection — used by scripts/catalog_sources.py to decide the ingest route.
 pdfplumber==0.11.4
+
+# OCR — Student Book 1 has no text layer on any of its 225 pages, and the WPH11
+# and WPH13 examiner reports embed subset fonts with no ToUnicode CMap. Needs
+# the tesseract binary on PATH as well.
+pypdfium2==5.13.0
+pytesseract==0.3.13

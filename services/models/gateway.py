@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Any, Sequence
 
 from .providers.base import (
     CapabilityUnavailable,
@@ -89,6 +89,45 @@ class GatewayConfig:
                 "Reranking uses BAAI/bge-reranker-v2-m3.")
 
 
+class SplitProvider:
+    """
+    One provider generates, another embeds and reranks.
+
+    This is not an abstraction for its own sake — it is the only configuration
+    in which the whole system works today. Hugging Face serves `BAAI/bge-m3` but
+    not `gemma4:e4b`; Ollama serves `gemma4:e4b` but cannot produce bge-m3
+    vectors. The corpus is already indexed with bge-m3, so embedding queries
+    with anything else would place query and document vectors in different
+    spaces and rank confidently wrong.
+
+    It is emphatically **not** a fallback chain. Each capability has exactly one
+    provider, chosen because it is the only one that can do that job. Nothing
+    here ever answers a generation request from a second generation model
+    (ADR-022).
+    """
+
+    def __init__(self, generator: Provider, retriever: Provider) -> None:
+        self._generator = generator
+        self._retriever = retriever
+        self.name = f"{getattr(generator, 'name', '?')}+{getattr(retriever, 'name', '?')}"
+
+    def generate(self, prompt: str, **kwargs: Any) -> Completion:
+        return self._generator.generate(prompt, **kwargs)
+
+    def embed(self, texts: Sequence[str], *, model: str) -> list[Embedding]:
+        return self._retriever.embed(texts, model=model)
+
+    def rerank(self, query: str, documents: Sequence[str], *, model: str) -> list[RerankResult]:
+        return self._retriever.rerank(query, documents, model=model)
+
+    def health(self) -> dict[str, Any]:
+        return {
+            "generation": self._generator.health(),
+            "retrieval": self._retriever.health(),
+            "reachable": bool(self._generator.health().get("reachable")),
+        }
+
+
 def build_provider(name: str) -> Provider:
     """Construct a provider by name. Unknown names fail closed, listing the real ones."""
     if name == "mock":
@@ -96,8 +135,17 @@ def build_provider(name: str) -> Provider:
     if name in ("huggingface", "hf"):
         from .providers.huggingface import HuggingFaceProvider
         return HuggingFaceProvider()
+    if name == "ollama":
+        # Generation locally, embeddings on Hugging Face — see SplitProvider.
+        from .providers.ollama import OllamaProvider
+        try:
+            from .providers.huggingface import HuggingFaceProvider
+            return SplitProvider(OllamaProvider(), HuggingFaceProvider())
+        except ProviderError:
+            # No HF token: generation still works, retrieval will say why.
+            return OllamaProvider()
     raise ProviderError(
-        f"unknown AI_PROVIDER={name!r}. Available: mock, huggingface. "
+        f"unknown AI_PROVIDER={name!r}. Available: mock, huggingface, ollama. "
         "An unrecognised provider is a configuration error, not a reason to "
         "guess at a default.")
 
