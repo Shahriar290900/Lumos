@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-04T01:22:18+00:00",
+  "generated_at": "2026-09-04T12:41:34+00:00",
   "adapter": "past_paper",
-  "ingestion_version": "004b.1",
+  "ingestion_version": "004c.1",
   "dry_run": false,
   "note": "Structure and counts only. No question text, mark-scheme text or examiner commentary appears in this file — the source documents are licensed and are never redistributed.",
   "documents_processed": 6,
@@ -271,8 +271,8 @@
     "nctb/bangla/ssc": 0,
     "nctb/biology/ssc": 0,
     "nctb/chemistry/ssc": 0,
-    "nctb/english/ssc": 43,
-    "nctb/ict/ssc": 120,
+    "nctb/english/ssc": 109,
+    "nctb/ict/ssc": 164,
     "nctb/mathematics/ssc": 0,
     "nctb/physics/ssc": 0
   },
@@ -282,8 +282,8 @@
     "nctb/bangla/ssc": 0,
     "nctb/biology/ssc": 0,
     "nctb/chemistry/ssc": 0,
-    "nctb/english/ssc": 43,
-    "nctb/ict/ssc": 120,
+    "nctb/english/ssc": 109,
+    "nctb/ict/ssc": 164,
     "nctb/mathematics/ssc": 0,
     "nctb/physics/ssc": 0
   }

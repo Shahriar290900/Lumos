@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-09-04T01:21:57+00:00",
+  "generated_at": "2026-09-04T12:40:57+00:00",
   "adapter": "legacy_corpus",
-  "ingestion_version": "004b.1",
+  "ingestion_version": "004c.1",
   "dry_run": false,
   "note": "Counts, identities and gap tallies only. No source text appears in this file.",
   "documents": 23,
   "source_records": 180,
   "write": {
-    "created": 180,
+    "created": 290,
     "updated": 0,
     "unchanged": 0,
     "duplicates_seen": 0,
     "warnings": [],
-    "total": 180
+    "total": 290
   },
   "by_offering": {
     "edexcel-ial/physics/a2": {
@@ -24,15 +24,15 @@
     },
     "nctb/english/ssc": {
       "source_records": 43,
-      "chunks": 43,
-      "created": 43,
+      "chunks": 109,
+      "created": 109,
       "updated": 0,
       "unchanged": 0
     },
     "nctb/ict/ssc": {
       "source_records": 120,
-      "chunks": 120,
-      "created": 120,
+      "chunks": 164,
+      "created": 164,
       "updated": 0,
       "unchanged": 0
     }
@@ -54,32 +54,47 @@
     "nctb/bangla/ssc": 0,
     "nctb/biology/ssc": 0,
     "nctb/chemistry/ssc": 0,
-    "nctb/english/ssc": 43,
-    "nctb/ict/ssc": 120,
+    "nctb/english/ssc": 109,
+    "nctb/ict/ssc": 164,
     "nctb/mathematics/ssc": 0,
     "nctb/physics/ssc": 0
   },
   "reconciliation": {
     "nctb/ict/ssc": {
       "audited_records": 120,
-      "canonical_chunks": 120,
+      "source_records_present": 120,
+      "canonical_chunks": 164,
       "matches": true
     },
     "nctb/english/ssc": {
       "audited_records": 43,
-      "canonical_chunks": 43,
+      "source_records_present": 43,
+      "canonical_chunks": 109,
       "matches": true
     },
     "edexcel-ial/physics/a2": {
       "audited_records": 17,
+      "source_records_present": 17,
       "canonical_chunks": 17,
       "matches": true
     },
     "_total": {
       "audited_records": 180,
-      "canonical_chunks": 180,
+      "source_records_present": 180,
+      "canonical_chunks": 290,
       "matches": true
     }
+  },
+  "cleaning": {
+    "stages": {
+      "bullet_glyph_e": 61,
+      "hyphenated_line_break": 20,
+      "bangla_doubled_consonant": 2212
+    },
+    "records_repaired": 142,
+    "records_split": 82,
+    "true_compound_prefixes": 100,
+    "pruned_stale_chunks": 0
   },
   "field_gaps": {
     "no_chapter_label": 0,

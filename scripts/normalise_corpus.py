@@ -92,6 +92,35 @@ def _chunk_counts(conn: psycopg.Connection, chunk_type: str | None = None) -> di
         return {r["slug"]: r["n"] for r in cur.fetchall()}
 
 
+def _source_record_counts(conn: psycopg.Connection) -> dict[str, int]:
+    """
+    Distinct legacy source records per offering, however many chunks each became.
+
+    This is the invariant that survives LUMOS-004C.1. Before re-chunking, one
+    audited record was one chunk and comparing chunk counts to the auditor was
+    the same test. After re-chunking it is not: the 43 English records become
+    110 chunks, and a chunk-count comparison would report that as normalisation
+    inventing 67 records.
+
+    What must still hold is that no record was lost and none invented, and
+    `count(distinct legacy_chunk_id)` says exactly that regardless of how the
+    text was divided. Chunk counts are still reported — they are just no longer
+    the thing being reconciled.
+    """
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            SELECT o.slug, count(DISTINCT c.legacy_chunk_id) AS n
+            FROM subject_offerings o
+            LEFT JOIN chunks c
+              ON c.offering_id = o.id
+             AND c.chunk_type = 'legacy_record'
+             AND c.legacy_chunk_id IS NOT NULL
+            GROUP BY o.slug ORDER BY o.slug
+            """)
+        return {r["slug"]: r["n"] for r in cur.fetchall()}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # legacy
 # ─────────────────────────────────────────────────────────────────────────────
@@ -104,6 +133,7 @@ def run_legacy(conn: psycopg.Connection, corpus_root: Path, audit_path: Path,
     if not dry_run:
         conn.commit()
     after = _chunk_counts(conn, "legacy_record")
+    sources = _source_record_counts(conn)
     slugs = _slugs(conn)
 
     by_slug = {slugs.get(oid, oid): stats for oid, stats in report.by_offering.items()}
@@ -118,25 +148,36 @@ def run_legacy(conn: psycopg.Connection, corpus_root: Path, audit_path: Path,
         audited = {k: v["records"] for k, v in audit.get("subjects", {}).items()}
         for slug, subject in AUDIT_SUBJECT_BY_SLUG.items():
             expected = audited.get(subject)
-            actual = after.get(slug, 0) if not dry_run else \
+            chunks = after.get(slug, 0) if not dry_run else \
                 by_slug.get(slug, {}).get("chunks", 0)
+            records = sources.get(slug, 0) if not dry_run else \
+                by_slug.get(slug, {}).get("source_records", 0)
             reconciliation[slug] = {
-                "audited_records": expected, "canonical_chunks": actual,
-                "matches": expected == actual,
+                "audited_records": expected,
+                "source_records_present": records,
+                "canonical_chunks": chunks,
+                "matches": expected == records,
             }
-            if expected is not None and expected != actual:
+            if expected is not None and expected != records:
                 failures.append(
-                    f"{slug}: {actual} canonical chunks from {expected} audited records "
+                    f"{slug}: {records} source records present from {expected} audited "
                     "— normalisation lost or invented records")
+            if expected is not None and chunks < records:
+                failures.append(
+                    f"{slug}: {chunks} chunks for {records} records — a record "
+                    "must produce at least one chunk")
         total_expected = audit.get("total_records")
-        total_actual = sum(r["canonical_chunks"] for r in reconciliation.values())
+        total_records = sum(r["source_records_present"] for r in reconciliation.values())
+        total_chunks = sum(r["canonical_chunks"] for r in reconciliation.values())
         reconciliation["_total"] = {
-            "audited_records": total_expected, "canonical_chunks": total_actual,
-            "matches": total_expected == total_actual,
+            "audited_records": total_expected,
+            "source_records_present": total_records,
+            "canonical_chunks": total_chunks,
+            "matches": total_expected == total_records,
         }
-        if total_expected is not None and total_expected != total_actual:
+        if total_expected is not None and total_expected != total_records:
             failures.append(
-                f"total: {total_actual} canonical chunks from {total_expected} audited records")
+                f"total: {total_records} source records present from {total_expected} audited")
     else:
         failures.append(f"{audit_path} not found — cannot reconcile against the auditor")
 
@@ -156,6 +197,16 @@ def run_legacy(conn: psycopg.Connection, corpus_root: Path, audit_path: Path,
         "legacy_chunk_counts_before": before,
         "legacy_chunk_counts_after": after,
         "reconciliation": reconciliation,
+        # LUMOS-004C.1. Which repair fired how many times, and how many records
+        # were split. Counts only — the stage names and tallies say what changed
+        # without reproducing a character of source text.
+        "cleaning": {
+            "stages": report.cleaning_stages,
+            "records_repaired": report.records_repaired,
+            "records_split": report.records_split,
+            "true_compound_prefixes": report.true_compound_prefixes,
+            "pruned_stale_chunks": report.pruned_stale_chunks,
+        },
         "field_gaps": report.field_gaps,
         "duplicate_content_groups": len(report.duplicate_content_groups),
         "duplicate_content_examples": {

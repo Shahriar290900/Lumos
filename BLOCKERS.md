@@ -170,9 +170,9 @@ Two facts informed that choice. Pearson publishes past papers, mark schemes and 
 
 ---
 
-## BLOCK-009 — Bangla OCR damage: repairable or re-extract?
+## BLOCK-009 — Bangla OCR damage: RESOLVED by repair
 
-**Severity:** Medium · **Status:** OPEN (needs a study, not a decision yet)
+**Severity:** Low · **Status:** RESOLVED (2026-09-04) — repair was sufficient; re-extraction is not needed
 
 73 of 120 ICT records carry vowel-sign/conjunct corruption. Whether normalisation plus targeted repair rules is sufficient, or whether the source PDFs must be re-extracted with a better Bangla OCR pipeline, is unknown.
 
@@ -180,7 +180,27 @@ Two facts informed that choice. Pearson publishes past papers, mark schemes and 
 
 **Note 2026-09-04:** OCR quality on the Edexcel scans was measured and is good (Tesseract at 250-300 DPI on both the textbook and the examiner reports). That is evidence the OCR toolchain is adequate for Latin script; it says nothing about Bangla, which is a materially harder script and must be measured separately before assuming re-extraction would improve on repair.
 
-**Blocks:** LUMOS-004C quality gate.
+**Resolved 2026-09-04 (LUMOS-004C.1).** The study was done and repair won.
+
+The damage is not general OCR noise. It is one mechanical fault with one rule:
+a **consonant doubled before a pre-base vowel sign**. `ো` (U+09CB) decomposes to
+`ে` + `া`, and legacy Bangla encodings store the pre-base component *before* its
+consonant, so a converter reading it as a standalone character emits the
+consonant twice. `কো` becomes `ককো`.
+
+That is deterministically reversible, and safely so: Bengali writes a true
+geminate as a conjunct with a virama (`ক্ক`), never as two bare consonants, so
+the pattern has no legitimate counterpart to destroy.
+
+**The recorded figure was wrong, and understated the damage by about nine
+times.** "73 of 120 records" came from an auditor pattern matching only `যয`.
+Measured properly: **2,253 occurrences across all 120 ICT records**, with English
+and Physics untouched. 2,212 repairs applied.
+
+Re-extraction would have needed source PDFs nobody has located, and would have
+fixed a fault that a seven-line regular expression fixes exactly.
+
+**Blocks:** nothing.
 
 ---
 

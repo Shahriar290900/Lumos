@@ -30,7 +30,7 @@ from services.ingestion.legacy_adapter import (
     LegacyDocument,
     detect_language,
     reconcile_chapter,
-    record_to_chunk,
+    record_to_chunks,
 )
 from services.ingestion.past_paper import (
     clean_paper_text,
@@ -64,6 +64,13 @@ def make_chunk(**overrides) -> CanonicalChunk:
 # ─────────────────────────────────────────────────────────────────────────────
 # Identity
 # ─────────────────────────────────────────────────────────────────────────────
+
+def _one(record, doc=None, ordinal=0):
+    """First chunk of a record. Most legacy fixtures are small enough not to split."""
+    chunks = record_to_chunks(record, doc if doc is not None else LEGACY_DOC, ordinal)
+    assert len(chunks) == 1, f"fixture unexpectedly split into {len(chunks)} pieces"
+    return chunks[0]
+
 
 def test_chunk_key_embeds_document_and_locator():
     key = make_chunk_key(SHA_A, "q/12")
@@ -271,7 +278,7 @@ LEGACY_RECORD = {
 
 
 def test_legacy_record_converts_and_stays_traceable():
-    chunk = record_to_chunk(LEGACY_RECORD, LEGACY_DOC, ordinal=0)
+    chunk = record_to_chunks(LEGACY_RECORD, LEGACY_DOC, ordinal=0)[0]
     assert chunk.chunk_type == "legacy_record"
     assert chunk.extraction_method == "structured_jsonl"
     assert chunk.legacy_chunk_id == "SSC-ICT-C1-P1-CH1"
@@ -282,7 +289,7 @@ def test_legacy_record_converts_and_stays_traceable():
 
 
 def test_legacy_token_count_is_preserved_but_not_used():
-    chunk = record_to_chunk(LEGACY_RECORD, LEGACY_DOC, ordinal=0)
+    chunk = record_to_chunks(LEGACY_RECORD, LEGACY_DOC, ordinal=0)[0]
     assert chunk.legacy_token_count == 2099
     assert chunk.token_count != 2099   # recomputed from the actual text
 
@@ -299,7 +306,7 @@ def test_chapter_title_and_chapter_name_both_resolve():
 
 
 def test_the_field_a_chapter_label_came_from_is_recorded():
-    chunk = record_to_chunk({**LEGACY_RECORD, "chapter_title": None,
+    chunk = _one({**LEGACY_RECORD, "chapter_title": None,
                              "chapter_name": "Unit three"}, LEGACY_DOC, 0)
     assert chunk.section_ref == "Unit three"
     assert chunk.legacy_metadata["chapter_field_used"] == "chapter_name"
@@ -315,7 +322,7 @@ def test_language_is_derived_from_the_script_not_the_filename():
 
 def test_missing_legacy_fields_become_explicit_nulls():
     sparse = {"chunk_id": "X-1", "content": "Some text."}
-    chunk = record_to_chunk(sparse, LEGACY_DOC, 0)
+    chunk = record_to_chunks(sparse, LEGACY_DOC, 0)[0]
     assert chunk.section_ref is None
     assert chunk.topic is None
     assert chunk.syllabus_reference is None
@@ -327,16 +334,16 @@ def test_missing_legacy_fields_become_explicit_nulls():
 
 def test_legacy_record_without_an_identifier_is_refused():
     with pytest.raises(ValueError, match="no chunk_id"):
-        record_to_chunk({"content": "orphan"}, LEGACY_DOC, 0)
+        record_to_chunks({"content": "orphan"}, LEGACY_DOC, 0)
 
 
 def test_legacy_record_without_content_is_refused():
     with pytest.raises(ValueError, match="no content"):
-        record_to_chunk({"chunk_id": "X-1", "content": "  "}, LEGACY_DOC, 0)
+        record_to_chunks({"chunk_id": "X-1", "content": "  "}, LEGACY_DOC, 0)
 
 
 def test_spec_ref_survives_when_the_source_has_one():
-    chunk = record_to_chunk({**LEGACY_RECORD, "spec_ref": "5.6.154, 5.6.155"},
+    chunk = _one({**LEGACY_RECORD, "spec_ref": "5.6.154, 5.6.155"},
                             LEGACY_DOC, 0)
     assert chunk.syllabus_reference == "5.6.154, 5.6.155"
 

@@ -562,3 +562,136 @@ def test_canonical_chunk_migration_applies_and_reverses(empty_database_url):
     subprocess.run(migrate + ["up"], env=env, check=True, capture_output=True, text=True)
     tables, _ = relations()
     assert "chunks" in tables
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LUMOS-004C.1 — cleaning, re-chunking, and retiring what they replace
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_pruning_removes_a_chunk_the_rerun_no_longer_produces(conn, sandbox):
+    """
+    Re-chunking retires the whole-record chunk it replaces.
+
+    When a record that was one chunk (`legacy/<id>`) becomes three
+    (`legacy/<id>/part/0..2`), the original row still satisfies every constraint
+    and would simply stay. The corpus would then hold both the whole record and
+    its pieces, double-counting it in retrieval and in `canonical_chunk_count`.
+    """
+    from services.ingestion.canonical import CanonicalChunk, ChunkWriter
+    from services.ingestion.legacy_adapter import prune_stale_chunks
+
+    def chunk(locator: str) -> CanonicalChunk:
+        return CanonicalChunk(
+            source_document_id=sandbox["document_id"],
+            offering_id=sandbox["offering_id"],
+            document_sha256=sandbox["document_sha256"],
+            locator=locator, text=f"content for {locator}",
+            chunk_type="legacy_record", extraction_method="structured_jsonl",
+            legacy_chunk_id="REC-1")
+
+    writer = ChunkWriter(conn)
+    stale = chunk("legacy/REC-1")
+    fresh = [chunk("legacy/REC-1/part/0"), chunk("legacy/REC-1/part/1")]
+    writer.write([stale, *fresh])
+
+    with conn.cursor() as cur:
+        cur.execute("SELECT count(*) FROM chunks WHERE source_document_id = %s",
+                    (sandbox["document_id"],))
+        assert cur.fetchone()[0] == 3
+
+    removed = prune_stale_chunks(
+        conn, document_ids=[sandbox["document_id"]],
+        keep_keys={c.chunk_key for c in fresh})
+
+    assert removed == 1
+    with conn.cursor() as cur:
+        cur.execute("SELECT chunk_key FROM chunks WHERE source_document_id = %s "
+                    "ORDER BY chunk_key", (sandbox["document_id"],))
+        assert [r[0] for r in cur.fetchall()] == sorted(c.chunk_key for c in fresh)
+
+
+def test_pruning_refuses_to_empty_the_corpus(conn, sandbox):
+    """An empty keep-set is a bug in the caller, not an instruction to delete all."""
+    from services.ingestion.canonical import CanonicalChunk, ChunkWriter
+    from services.ingestion.legacy_adapter import prune_stale_chunks
+
+    ChunkWriter(conn).write([CanonicalChunk(
+        source_document_id=sandbox["document_id"],
+        offering_id=sandbox["offering_id"],
+        document_sha256=sandbox["document_sha256"],
+        locator="legacy/KEEP-ME", text="content",
+        chunk_type="legacy_record", extraction_method="structured_jsonl",
+        legacy_chunk_id="KEEP-ME")])
+
+    assert prune_stale_chunks(conn, document_ids=[sandbox["document_id"]],
+                              keep_keys=set()) == 0
+    with conn.cursor() as cur:
+        cur.execute("SELECT count(*) FROM chunks WHERE source_document_id = %s",
+                    (sandbox["document_id"],))
+        assert cur.fetchone()[0] == 1
+
+
+def test_pruning_cannot_reach_another_adapters_chunks(conn, sandbox):
+    """Scoped by document and by chunk type, so an exam question is untouchable."""
+    from services.ingestion.canonical import CanonicalChunk, ChunkWriter
+    from services.ingestion.legacy_adapter import prune_stale_chunks
+
+    question = CanonicalChunk(
+        source_document_id=sandbox["document_id"],
+        offering_id=sandbox["offering_id"],
+        document_sha256=sandbox["document_sha256"],
+        locator="q/1", text="Calculate the weight.",
+        chunk_type="exam_question", extraction_method="pdf_text_layer",
+        question_number="1", marks=3)
+    legacy = CanonicalChunk(
+        source_document_id=sandbox["document_id"],
+        offering_id=sandbox["offering_id"],
+        document_sha256=sandbox["document_sha256"],
+        locator="legacy/OLD", text="superseded",
+        chunk_type="legacy_record", extraction_method="structured_jsonl",
+        legacy_chunk_id="OLD")
+    ChunkWriter(conn).write([question, legacy])
+
+    prune_stale_chunks(conn, document_ids=[sandbox["document_id"]],
+                       keep_keys={"lumos:v1:" + sandbox["document_sha256"] + ":legacy/NEW"})
+
+    with conn.cursor() as cur:
+        cur.execute("SELECT chunk_type::text FROM chunks WHERE source_document_id = %s",
+                    (sandbox["document_id"],))
+        remaining = [r[0] for r in cur.fetchall()]
+    assert remaining == ["exam_question"], "the legacy chunk goes, the question stays"
+
+
+def test_a_repaired_chunk_is_derived_and_keeps_its_raw_text(conn, sandbox):
+    """ADR-021, applied to cleaning: a repair is not what the source said."""
+    from services.ingestion.legacy_adapter import LegacyDocument, record_to_chunks
+
+    doc = LegacyDocument(
+        path=Path("sandbox.jsonl"), source_document_id=sandbox["document_id"],
+        offering_id=sandbox["offering_id"], declared_language="bn",
+        sha256=sandbox["document_sha256"])
+    damaged = "তথ্য ও যযোগাযযোগ প্রযুক্তি ককোননো একটি বিষয়।"
+    chunks = record_to_chunks({"chunk_id": "ICT-1", "content": damaged}, doc, 0)
+
+    assert len(chunks) == 1
+    chunk = chunks[0]
+    assert chunk.provenance_status == "derived"
+    assert chunk.text_raw == damaged, "the damaged text must survive the repair"
+    assert "যযোগ" not in chunk.text and "যোগাযোগ" in chunk.text
+    assert chunk.legacy_metadata["cleaning"]["by_stage"]["bangla_doubled_consonant"] > 0
+
+
+def test_an_undamaged_record_stays_verbatim(conn, sandbox):
+    """Only a chunk that actually changed loses `verbatim`."""
+    from services.ingestion.legacy_adapter import LegacyDocument, record_to_chunks
+
+    doc = LegacyDocument(
+        path=Path("sandbox.jsonl"), source_document_id=sandbox["document_id"],
+        offering_id=sandbox["offering_id"], declared_language="en",
+        sha256=sandbox["document_sha256"])
+    chunks = record_to_chunks(
+        {"chunk_id": "EN-1", "content": "A clean English sentence."}, doc, 0)
+
+    assert len(chunks) == 1
+    assert chunks[0].provenance_status == "verbatim"
+    assert chunks[0].text_raw is None

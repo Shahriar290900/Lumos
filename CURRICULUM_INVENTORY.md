@@ -19,8 +19,8 @@ Generated: 2026-09-04
 | `nctb/bangla/ssc` | NCTB | Bangla | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 | `nctb/biology/ssc` | NCTB | Biology | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 | `nctb/chemistry/ssc` | NCTB | Chemistry | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
-| `nctb/english/ssc` | NCTB | English | Secondary School Certificate | in preparation | 16 | 43 | 0 | no |
-| `nctb/ict/ssc` | NCTB | ICT | Secondary School Certificate | in preparation | 6 | 120 | 0 | no |
+| `nctb/english/ssc` | NCTB | English | Secondary School Certificate | in preparation | 16 | 109 | 0 | no |
+| `nctb/ict/ssc` | NCTB | ICT | Secondary School Certificate | in preparation | 6 | 164 | 0 | no |
 | `nctb/mathematics/ssc` | NCTB | Mathematics | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 | `nctb/physics/ssc` | NCTB | Physics | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 
@@ -70,21 +70,21 @@ These are **audited** counts of legacy source records, not indexed chunks. `inde
 | `edexcel-ial/physics/a2` | exam_question | pdf_text_layer | cleaned | 42 | 127 |
 | `edexcel-ial/physics/a2` | legacy_record | structured_jsonl | verbatim | 17 | 278 |
 | `edexcel-ial/physics/international-as` | exam_question | pdf_text_layer | cleaned | 41 | 133 |
-| `nctb/english/ssc` | legacy_record | structured_jsonl | verbatim | 43 | 1182 |
-| `nctb/ict/ssc` | legacy_record | structured_jsonl | normalized | 15 | 580 |
-| `nctb/ict/ssc` | legacy_record | structured_jsonl | verbatim | 105 | 607 |
+| `nctb/english/ssc` | legacy_record | structured_jsonl | derived | 104 | 499 |
+| `nctb/english/ssc` | legacy_record | structured_jsonl | verbatim | 5 | 308 |
+| `nctb/ict/ssc` | legacy_record | structured_jsonl | derived | 164 | 447 |
 
-**263 canonical chunks total.** Provenance is recorded per chunk, not per corpus: `verbatim` means the stored text is exactly what extraction produced, `cleaned` means layout furniture was removed, `normalized` means Unicode normalisation changed something. Anything other than verbatim keeps its untransformed text.
+**373 canonical chunks total.** Provenance is recorded per chunk, not per corpus: `verbatim` means the stored text is exactly what extraction produced, `cleaned` means layout furniture was removed, `normalized` means Unicode normalisation changed something. Anything other than verbatim keeps its untransformed text.
 
 ### Normalisation runs
 
 | Offering | Adapter | Version | Documents | Source records |
 |---|---|---|---:|---:|
-| `edexcel-ial/physics/a2` | legacy_corpus | 004b.1 | 1 | 17 |
-| `edexcel-ial/physics/a2` | past_paper | 004b.1 | 3 | 42 |
-| `edexcel-ial/physics/international-as` | past_paper | 004b.1 | 3 | 41 |
-| `nctb/english/ssc` | legacy_corpus | 004b.1 | 1 | 43 |
-| `nctb/ict/ssc` | legacy_corpus | 004b.1 | 1 | 120 |
+| `edexcel-ial/physics/a2` | legacy_corpus | 004c.1 | 1 | 17 |
+| `edexcel-ial/physics/a2` | past_paper | 004c.1 | 3 | 42 |
+| `edexcel-ial/physics/international-as` | past_paper | 004c.1 | 3 | 41 |
+| `nctb/english/ssc` | legacy_corpus | 004c.1 | 1 | 43 |
+| `nctb/ict/ssc` | legacy_corpus | 004c.1 | 1 | 120 |
 
 The most recent normalisation batch per adapter, summed across the documents in that batch.
 

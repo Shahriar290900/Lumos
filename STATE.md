@@ -1,8 +1,8 @@
 # Lumos State
 
 **Current phase:** Phase 0.5 — Curriculum and data foundation
-**Last completed goal:** LUMOS-004B.1 — Bootstrap fixes and model policy (2026-09-04)
-**Next goal:** LUMOS-004C.1 — Legacy text repair
+**Last completed goal:** LUMOS-004C.1 — Legacy text repair (2026-09-04)
+**Next goal:** LUMOS-004C.2 — Mark schemes, examiner reports, linking
 **Repository:** `github.com/Shahriar290900/Lumos` — **pushed**, 6 commits, CI green
 
 ## Environment — measured 2026-09-04
@@ -35,6 +35,8 @@ path.
 
 **LUMOS-004B Canonical chunk schema + legacy normalisation adapter** — evidence below.
 
+**LUMOS-004C.1 Legacy text repair** — Bangla damage repaired across all 120 ICT records (2,212 repairs), English re-chunked from whole units to 400–600 tokens, and the recorded damage figure corrected from 73 records to 120. 180 source records now yield 290 chunks, none over the retrieval window.
+
 **LUMOS-004B.1 Bootstrap fixes and model policy** — history pushed and CI green for the first time; `gemma4:e4b` recorded as the only generation model (ADR-022); Neon provisioned and the full gate verified against it (ADR-023); a reproducibility defect found and fixed in the inventory generator.
 
 **Decisions taken since (ADR-026)** — the 18 Edexcel exam PDFs will be served in the application; *Student Book 1* is never served and stays retrieval grounding only. This escalated BLOCK-003 (R2) onto the demo critical path, and needs a registry column that does not exist yet.
@@ -50,7 +52,7 @@ path.
 - **Provenance per chunk** (ADR-021): 165 `verbatim`, 83 `cleaned`, 15 `normalized`. Every non-verbatim chunk keeps `text_raw`; the schema refuses one that does not.
 - **Legacy traceability**: all 180 keep `legacy_chunk_id` and the complete original record in `legacy_metadata`.
 - **Three counts, three meanings** (ADR-020): audited / canonical / indexed. `canonical_chunk_count` is a view subquery, so it cannot be set by hand.
-- **125 tests pass** with `AI_PROVIDER=mock` and no model credential (120 at 004B, plus 5 inventory-reproducibility tests).
+- **179 tests pass** with `AI_PROVIDER=mock` and no model credential (120 at 004B, plus 5 inventory-reproducibility tests).
 - **Consistency gate extended** to chunk identity, key–document agreement, offering agreement and legacy reconciliation. Proved to fire on injected drift.
 - **No source text in any committed file**: evidence reports carry counts, checksums and structure only; test fixtures are synthetic.
 
@@ -71,15 +73,13 @@ path.
 
 - **Nothing is indexed.** No embeddings, no lexical index, so no offering is available. Correct, not a defect.
 - Mark schemes, examiner reports and the 225-page textbook are catalogued and routed but not yet ingested — LUMOS-004C.
-- The Bangla corruption in 73 ICT records is recorded, not repaired.
-- English chunks remain whole textbook units of ~2,000 tokens.
 - **The Model Gateway does not exist.** `AI_PROVIDER=mock` is set in tests and CI and **nothing reads it**. `services/models/` is not created. That is LUMOS-004F, and no generation of any kind has been run.
 - Infrastructure still unprovisioned: no Cloudflare zone, R2 bucket, Render service or model endpoint. Neon is now provisioned (development only, no production branch).
 - The ~2.58 GB Edexcel corpus in the whitepaper remains unlocated (BLOCK-001 decided, BLOCK-001A open).
 
 ## Open blockers
 
-BLOCK-001A (locate the claimed corpus), BLOCK-003 (Cloudflare/R2), BLOCK-004 (Render), BLOCK-006 (auth), BLOCK-007 (under-18 policy), BLOCK-008 (licensing), BLOCK-009 (Bangla OCR repairability — now on the critical path for 004C.1).
+BLOCK-001A (locate the claimed corpus), BLOCK-003 (Cloudflare/R2), BLOCK-004 (Render), BLOCK-006 (auth), BLOCK-007 (under-18 policy), BLOCK-008 (licensing), BLOCK-009 (Bangla re-extraction — **downgraded**: repair succeeded, see below).
 
 Partly closed: BLOCK-002 (Neon provisioned; no production branch), BLOCK-005 (model and remote hosting decided; endpoint, budget ceiling and shutdown procedure still open).
 

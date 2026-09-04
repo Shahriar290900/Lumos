@@ -220,25 +220,58 @@ def check(conn: psycopg.Connection, audit: dict, catalog: dict | None
                 "— curriculum isolation would be violated")
 
         # ── 7. normalised legacy corpora must match the auditor ──────────────
+        #
+        # Reconciled on *source records*, not chunk count. Until LUMOS-004C.1 the
+        # two were the same number, because one audited record was one chunk. Now
+        # re-chunking splits the 43 English records into 109 chunks, and a
+        # chunk-count comparison would report that as normalisation inventing 66
+        # records.
+        #
+        # `count(distinct legacy_chunk_id)` still says exactly what this check
+        # exists to say — nothing lost, nothing invented — and says it however
+        # the text was divided. The second clause keeps the other half of the
+        # guarantee: a record that produced no chunk at all would otherwise pass
+        # unnoticed.
         cur.execute(
             """
-            SELECT o.slug, count(*) AS n
+            SELECT o.slug,
+                   count(DISTINCT c.legacy_chunk_id) AS records,
+                   count(*)                          AS chunks
             FROM chunks c
             JOIN subject_offerings o ON o.id = c.offering_id
             WHERE c.chunk_type = 'legacy_record'
             GROUP BY o.slug
             """)
-        legacy_counts = {r["slug"]: r["n"] for r in cur.fetchall()}
+        legacy_counts = {r["slug"]: (r["records"], r["chunks"]) for r in cur.fetchall()}
         for slug, subject in SNAPSHOT_SUBJECT_BY_SLUG.items():
-            actual = legacy_counts.get(slug)
+            counts = legacy_counts.get(slug)
             expected = audited.get(subject)
-            if actual is None:
+            if counts is None:
                 notes.append(f"{slug}: legacy corpus not yet normalised")
                 continue
-            if expected is not None and actual != expected:
+            records, chunks = counts
+            if expected is not None and records != expected:
                 failures.append(
-                    f"{slug}: {actual} legacy chunks from {expected} audited records "
+                    f"{slug}: {records} source records present from {expected} audited "
                     "— normalisation lost or invented records")
+            if chunks < records:
+                failures.append(
+                    f"{slug}: {chunks} chunks for {records} source records — "
+                    "every record must produce at least one chunk")
+
+        # ── 7b. no chunk may exceed the retrieval window ─────────────────────
+        cur.execute(
+            """
+            SELECT o.slug, count(*) AS n, max(c.token_count) AS worst
+            FROM chunks c
+            JOIN subject_offerings o ON o.id = c.offering_id
+            WHERE c.token_count > 600
+            GROUP BY o.slug
+            """)
+        for row in cur.fetchall():
+            failures.append(
+                f"{row['slug']}: {row['n']} chunk(s) over the 600-token window, "
+                f"largest {row['worst']} — re-chunking did not apply")
 
         # ── 8. anything visible but unusable must explain itself ─────────────
         cur.execute(

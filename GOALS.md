@@ -16,7 +16,7 @@ A goal is complete only when its acceptance criteria are met **and** the evidenc
 - [x] **LUMOS-004B Canonical chunk schema + legacy normalisation adapter** — evidence: migration 0002, 263 canonical chunks, 120 passing tests, `evidence/legacy_normalisation.json`
 - [x] **LUMOS-004B.1 Bootstrap fixes and model policy** — evidence below
 - [ ] **LUMOS-004C Corpus cleaning: Bangla repair, boundary repair, re-chunking** ← **NEXT GOAL**, in three sub-goals (ADR-025)
-  - [ ] **LUMOS-004C.1** Legacy text repair: Bangla, English re-chunking, glyph and truncation repair
+  - [x] **LUMOS-004C.1** Legacy text repair: Bangla, English re-chunking, glyph and truncation repair — evidence below
   - [ ] **LUMOS-004C.2** Mark-scheme and examiner-report adapters, cross-document linking, and the **document delivery column** (ADR-026)
   - [ ] **LUMOS-004C.3** Textbook OCR, 225 pages — *grounding only; never served (ADR-026)*
 - [ ] LUMOS-004D Licence and provenance registry
@@ -145,6 +145,43 @@ test harness was expected to need it for Neon and does not — this instance has
 `postgres` maintenance database, permits `pg_terminate_backend`, and accepts
 `CREATE DATABASE` on both endpoints. All 120 pre-existing tests passed against
 Neon with no code change, so the variable would have been speculative.
+
+---
+
+## LUMOS-004C.1 — Legacy text repair — COMPLETE (2026-09-04)
+
+| Criterion | Evidence |
+|---|---|
+| Bangla repair, measured before and after | 2,212 repairs across **120 of 120 ICT records**; `evidence/legacy_normalisation.json` |
+| English re-chunked to 400–600 tokens with 50-token overlap | 43 records → 109 chunks; **0 chunks over 600 tokens**, enforced by the consistency gate |
+| Repaired chunks are `derived`, never `verbatim`, and keep their input | 268 `derived`, 22 `verbatim`; schema refuses a transformed chunk with no `text_raw` |
+| Bullet-glyph and truncation repair | 61 bullet restorations, 20 hyphenated line breaks rejoined |
+| Every rule is a separate, reversible stage with its own test | 4 stages in `services/ingestion/cleaning.py`; 31 unit tests |
+| Provenance survives | every piece records `char_start`/`char_end` and its cleaning tally in `legacy_metadata` |
+| Counts reconcile, with the change explained | 180 audited → 180 source records present → 290 chunks; reconciliation moved from chunk count to `count(distinct legacy_chunk_id)` |
+| Consistency gate extended | source-record reconciliation, "every record yields ≥1 chunk", and a 600-token ceiling |
+| Full suite green | 179 tests |
+
+**The recorded damage was understated by about nine times.** `BLOCKERS.md` and
+`STATE.md` said 73 of 120 ICT records carried Bangla corruption. That came from an
+auditor pattern matching only `যয`. The actual fault is a **consonant doubled
+before a pre-base vowel sign** — `ো` decomposes to `ে` + `া`, and a converter
+reading the pre-base component as a standalone character emits the consonant
+twice. Measured properly it is **2,253 occurrences across all 120 ICT records**,
+and English and Physics are untouched.
+
+    ককোননো → কোনো (364)   যযোগাযযোগ → যোগাযোগ (124)
+    হললো → হলো (43)        মততো → মতো (28)
+
+**Two auditor patterns were wrong in the other direction too.** `broken_word_split`
+reported 66 records, but its 75 ICT matches are correct Bengali — `যেমন-` is a
+dash introducing a list and `ই- লার্নিং` is "e-learning", not damage. And
+`bullet_ocr_as_letter_e` reported zero because it anchored to a line start; the
+bullets are mid-line, because the extractor lost the newlines too.
+
+**Not done here:** `keywords` and `syllabus_reference` remain absent on 163 of 180
+records. Nothing in the sources supplies them, so they stay explicit gaps rather
+than invented values.
 
 ---
 

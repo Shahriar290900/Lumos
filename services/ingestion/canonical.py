@@ -48,7 +48,7 @@ LUMOS_CHUNK_NAMESPACE = uuid.UUID("6c9d1f2a-3b4e-5d6f-8a7b-9c0d1e2f3a4b")
 CHUNK_KEY_VERSION = 1
 
 # Bumped when the pipeline changes what it produces from the same input.
-INGESTION_VERSION = "004b.1"
+INGESTION_VERSION = "004c.1"
 
 CHUNK_TYPES = frozenset({
     "exam_question", "mark_scheme_answer", "examiner_commentary",
