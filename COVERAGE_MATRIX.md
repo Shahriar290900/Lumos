@@ -7,19 +7,21 @@ Machine-readable equivalent: `GET /curriculum`. Generated narrative: `CURRICULUM
 
 ## Registered offerings
 
-| Offering | Curriculum | Level | Sources | Audited records | Indexed | Status | MVP scope |
-|---|---|---|---:|---:|---:|---|---|
-| Physics | Edexcel IAL | International AS | 10 | — | 0 | in preparation | **Yes — the demo** |
-| Physics | Edexcel IAL | International A2 | 10 | 17 | 0 | planned | Held, not indexed |
-| ICT | NCTB | SSC | 6 | 120 | 0 | in preparation | Yes — target for publication |
-| English | NCTB | SSC | 16 | 43 | 0 | in preparation | Yes — target for publication |
-| Physics | NCTB | SSC | 0 | 0 | 0 | planned | Future |
-| Chemistry | NCTB | SSC | 0 | 0 | 0 | planned | Future |
-| Biology | NCTB | SSC | 0 | 0 | 0 | planned | Future |
-| Mathematics | NCTB | SSC | 0 | 0 | 0 | planned | Future |
-| Bangla | NCTB | SSC | 0 | 0 | 0 | planned | Future |
+| Offering | Curriculum | Level | Sources | Audited | Canonical | Indexed | Status | MVP scope |
+|---|---|---|---:|---:|---:|---:|---|---|
+| Physics | Edexcel IAL | International AS | 10 | — | 41 | 0 | in preparation | **Yes — the demo** |
+| Physics | Edexcel IAL | International A2 | 10 | 17 | 59 | 0 | planned | Held, not published |
+| ICT | NCTB | SSC | 6 | 120 | 120 | 0 | in preparation | Yes — target for publication |
+| English | NCTB | SSC | 16 | 43 | 43 | 0 | in preparation | Yes — target for publication |
+| Physics | NCTB | SSC | 0 | 0 | 0 | 0 | planned | Future |
+| Chemistry | NCTB | SSC | 0 | 0 | 0 | 0 | planned | Future |
+| Biology | NCTB | SSC | 0 | 0 | 0 | 0 | planned | Future |
+| Mathematics | NCTB | SSC | 0 | 0 | 0 | 0 | planned | Future |
+| Bangla | NCTB | SSC | 0 | 0 | 0 | 0 | planned | Future |
 
-"Audited records" counts legacy source records that an auditor found; "Indexed" counts chunks actually in the store. They are different things and are stored in different tables (ADR-014).
+Three counts, three meanings (ADR-014, ADR-020). **Audited** is what an auditor found in the source material. **Canonical** is what normalisation produced — 263 chunks across the four offerings above. **Indexed** is what is embedded and lexically searchable, which is still zero, which is why nothing is available.
+
+The A2 canonical count is 59 because that offering holds both the 17 legacy Astrophysics records and the 42 questions parsed from its A2 papers.
 
 ## Demo scope — Edexcel IAL AS Physics
 
@@ -42,10 +44,10 @@ A2 units 4–6 are held and catalogued but out of scope — Student Book 1 cover
 |---|---|---|---|---|
 | Sources catalogued and checksummed | ✅ 10 | ✅ 10 | ✅ 6 | ✅ 16 |
 | Ingestion route determined | ✅ | ✅ | ✅ structured | ✅ structured |
-| Canonical schema | ❌ | ❌ | ❌ | ❌ |
-| Deduplicated | n/a | ❌ dup in both repos | ❌ dup in both repos | ✅ |
-| Extraction quality acceptable | ⚠️ OCR needed | ⚠️ OCR needed | ❌ 73 damaged records | ⚠️ bullet/truncation artefacts |
-| Chunk size appropriate | not yet chunked | not yet chunked | ⚠️ ~1,800 chars | ❌ ~7,900 chars |
+| Canonical schema | ✅ 41 questions | ✅ 59 chunks | ✅ 120 chunks | ✅ 43 chunks |
+| Deduplicated | ✅ by content hash | ✅ by content hash | ✅ by content hash | ✅ |
+| Extraction quality acceptable | ⚠️ papers parsed; textbook needs OCR | ⚠️ papers parsed; no textbook layer | ❌ 73 damaged records | ⚠️ bullet/truncation artefacts |
+| Chunk size appropriate | ✅ whole question | ✅ whole question | ⚠️ ~600 tokens | ❌ ~1,180 tokens, whole units |
 | Syllabus references | ⚠️ in textbook, OCR-fragile | ✅ `spec_ref` on legacy | ❌ none | ❌ none |
 | Licence recorded | ✅ `permitted_private` | ✅ `permitted_private` | ❌ `unknown` | ❌ `unknown` |
 | Indexed | ❌ | ❌ | ❌ | ❌ |

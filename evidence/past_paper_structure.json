@@ -1,0 +1,290 @@
+{
+  "generated_at": "2026-09-04T01:22:18+00:00",
+  "adapter": "past_paper",
+  "ingestion_version": "004b.1",
+  "dry_run": false,
+  "note": "Structure and counts only. No question text, mark-scheme text or examiner commentary appears in this file — the source documents are licensed and are never redistributed.",
+  "documents_processed": 6,
+  "documents_skipped": [],
+  "questions_total": 83,
+  "marks_total": 440,
+  "per_document": [
+    {
+      "paper_code": "WPH11",
+      "offering": "edexcel-ial/physics/international-as",
+      "session": "2024 May June",
+      "pages": 28,
+      "questions_found": 19,
+      "total_marks": 80,
+      "numbering_gaps": [],
+      "warnings": [],
+      "sub_part_counts": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 2,
+        "12": 2,
+        "13": 2,
+        "14": 3,
+        "15": 3,
+        "16": 1,
+        "17": 3,
+        "18": 2,
+        "19": 5
+      },
+      "chunk_key_sample": [
+        "lumos:v1:a3bbdd75e02a33f887235599ed6377f327398ebf5f74ec20bfabf16796be3f9f:q/1",
+        "lumos:v1:a3bbdd75e02a33f887235599ed6377f327398ebf5f74ec20bfabf16796be3f9f:q/2",
+        "lumos:v1:a3bbdd75e02a33f887235599ed6377f327398ebf5f74ec20bfabf16796be3f9f:q/3",
+        "lumos:v1:a3bbdd75e02a33f887235599ed6377f327398ebf5f74ec20bfabf16796be3f9f:q/4",
+        "lumos:v1:a3bbdd75e02a33f887235599ed6377f327398ebf5f74ec20bfabf16796be3f9f:q/5",
+        "lumos:v1:a3bbdd75e02a33f887235599ed6377f327398ebf5f74ec20bfabf16796be3f9f:q/6",
+        "lumos:v1:a3bbdd75e02a33f887235599ed6377f327398ebf5f74ec20bfabf16796be3f9f:q/7",
+        "lumos:v1:a3bbdd75e02a33f887235599ed6377f327398ebf5f74ec20bfabf16796be3f9f:q/8"
+      ],
+      "write": {
+        "created": 19,
+        "updated": 0,
+        "unchanged": 0,
+        "duplicates_seen": 0,
+        "warnings": [],
+        "total": 19
+      }
+    },
+    {
+      "paper_code": "WPH12",
+      "offering": "edexcel-ial/physics/international-as",
+      "session": "2024 May June",
+      "pages": 28,
+      "questions_found": 18,
+      "total_marks": 80,
+      "numbering_gaps": [],
+      "warnings": [],
+      "sub_part_counts": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 2,
+        "13": 3,
+        "14": 6,
+        "15": 4,
+        "16": 2,
+        "17": 5,
+        "18": 5
+      },
+      "chunk_key_sample": [
+        "lumos:v1:0621ff278561adad08b905dec04b31ee521845f47da55c18b2988bc6cf489f4a:q/1",
+        "lumos:v1:0621ff278561adad08b905dec04b31ee521845f47da55c18b2988bc6cf489f4a:q/2",
+        "lumos:v1:0621ff278561adad08b905dec04b31ee521845f47da55c18b2988bc6cf489f4a:q/3",
+        "lumos:v1:0621ff278561adad08b905dec04b31ee521845f47da55c18b2988bc6cf489f4a:q/4",
+        "lumos:v1:0621ff278561adad08b905dec04b31ee521845f47da55c18b2988bc6cf489f4a:q/5",
+        "lumos:v1:0621ff278561adad08b905dec04b31ee521845f47da55c18b2988bc6cf489f4a:q/6",
+        "lumos:v1:0621ff278561adad08b905dec04b31ee521845f47da55c18b2988bc6cf489f4a:q/7",
+        "lumos:v1:0621ff278561adad08b905dec04b31ee521845f47da55c18b2988bc6cf489f4a:q/8"
+      ],
+      "write": {
+        "created": 18,
+        "updated": 0,
+        "unchanged": 0,
+        "duplicates_seen": 0,
+        "warnings": [],
+        "total": 18
+      }
+    },
+    {
+      "paper_code": "WPH13",
+      "offering": "edexcel-ial/physics/international-as",
+      "session": "2024 May June",
+      "pages": 20,
+      "questions_found": 4,
+      "total_marks": 50,
+      "numbering_gaps": [],
+      "warnings": [],
+      "sub_part_counts": {
+        "1": 4,
+        "2": 4,
+        "3": 6,
+        "4": 10
+      },
+      "chunk_key_sample": [
+        "lumos:v1:e54a2dcc70e87642883facc2d48aa03c9b13e999052f225d72074d5870066035:q/1",
+        "lumos:v1:e54a2dcc70e87642883facc2d48aa03c9b13e999052f225d72074d5870066035:q/2",
+        "lumos:v1:e54a2dcc70e87642883facc2d48aa03c9b13e999052f225d72074d5870066035:q/3",
+        "lumos:v1:e54a2dcc70e87642883facc2d48aa03c9b13e999052f225d72074d5870066035:q/4"
+      ],
+      "write": {
+        "created": 4,
+        "updated": 0,
+        "unchanged": 0,
+        "duplicates_seen": 0,
+        "warnings": [],
+        "total": 4
+      }
+    },
+    {
+      "paper_code": "WPH14",
+      "offering": "edexcel-ial/physics/a2",
+      "session": "2024 May June",
+      "pages": 32,
+      "questions_found": 18,
+      "total_marks": 90,
+      "numbering_gaps": [],
+      "warnings": [],
+      "sub_part_counts": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 2,
+        "12": 5,
+        "13": 4,
+        "14": 5,
+        "15": 4,
+        "16": 2,
+        "17": 7,
+        "18": 3
+      },
+      "chunk_key_sample": [
+        "lumos:v1:a8327da4726ce80c428e296efc4d1dd08a64940508b8d9673634b46700a2d266:q/1",
+        "lumos:v1:a8327da4726ce80c428e296efc4d1dd08a64940508b8d9673634b46700a2d266:q/2",
+        "lumos:v1:a8327da4726ce80c428e296efc4d1dd08a64940508b8d9673634b46700a2d266:q/3",
+        "lumos:v1:a8327da4726ce80c428e296efc4d1dd08a64940508b8d9673634b46700a2d266:q/4",
+        "lumos:v1:a8327da4726ce80c428e296efc4d1dd08a64940508b8d9673634b46700a2d266:q/5",
+        "lumos:v1:a8327da4726ce80c428e296efc4d1dd08a64940508b8d9673634b46700a2d266:q/6",
+        "lumos:v1:a8327da4726ce80c428e296efc4d1dd08a64940508b8d9673634b46700a2d266:q/7",
+        "lumos:v1:a8327da4726ce80c428e296efc4d1dd08a64940508b8d9673634b46700a2d266:q/8"
+      ],
+      "write": {
+        "created": 18,
+        "updated": 0,
+        "unchanged": 0,
+        "duplicates_seen": 0,
+        "warnings": [],
+        "total": 18
+      }
+    },
+    {
+      "paper_code": "WPH15",
+      "offering": "edexcel-ial/physics/a2",
+      "session": "2024 May June",
+      "pages": 32,
+      "questions_found": 20,
+      "total_marks": 90,
+      "numbering_gaps": [],
+      "warnings": [],
+      "sub_part_counts": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 2,
+        "14": 3,
+        "15": 2,
+        "16": 2,
+        "17": 3,
+        "18": 4,
+        "19": 2,
+        "20": 6
+      },
+      "chunk_key_sample": [
+        "lumos:v1:a5f14c2ff2444e8731a60623874fd8a287a7f66742c7905fc42296942b73f415:q/1",
+        "lumos:v1:a5f14c2ff2444e8731a60623874fd8a287a7f66742c7905fc42296942b73f415:q/2",
+        "lumos:v1:a5f14c2ff2444e8731a60623874fd8a287a7f66742c7905fc42296942b73f415:q/3",
+        "lumos:v1:a5f14c2ff2444e8731a60623874fd8a287a7f66742c7905fc42296942b73f415:q/4",
+        "lumos:v1:a5f14c2ff2444e8731a60623874fd8a287a7f66742c7905fc42296942b73f415:q/5",
+        "lumos:v1:a5f14c2ff2444e8731a60623874fd8a287a7f66742c7905fc42296942b73f415:q/6",
+        "lumos:v1:a5f14c2ff2444e8731a60623874fd8a287a7f66742c7905fc42296942b73f415:q/7",
+        "lumos:v1:a5f14c2ff2444e8731a60623874fd8a287a7f66742c7905fc42296942b73f415:q/8"
+      ],
+      "write": {
+        "created": 20,
+        "updated": 0,
+        "unchanged": 0,
+        "duplicates_seen": 0,
+        "warnings": [],
+        "total": 20
+      }
+    },
+    {
+      "paper_code": "WPH16",
+      "offering": "edexcel-ial/physics/a2",
+      "session": "2024 May June",
+      "pages": 24,
+      "questions_found": 4,
+      "total_marks": 50,
+      "numbering_gaps": [],
+      "warnings": [],
+      "sub_part_counts": {
+        "1": 6,
+        "2": 3,
+        "3": 6,
+        "4": 6
+      },
+      "chunk_key_sample": [
+        "lumos:v1:e4b1aa884e215f4ca458d4c9a9c9e918c00d16673ab9965b645a06da97da3c84:q/1",
+        "lumos:v1:e4b1aa884e215f4ca458d4c9a9c9e918c00d16673ab9965b645a06da97da3c84:q/2",
+        "lumos:v1:e4b1aa884e215f4ca458d4c9a9c9e918c00d16673ab9965b645a06da97da3c84:q/3",
+        "lumos:v1:e4b1aa884e215f4ca458d4c9a9c9e918c00d16673ab9965b645a06da97da3c84:q/4"
+      ],
+      "write": {
+        "created": 4,
+        "updated": 0,
+        "unchanged": 0,
+        "duplicates_seen": 0,
+        "warnings": [],
+        "total": 4
+      }
+    }
+  ],
+  "chunk_counts_before": {
+    "edexcel-ial/physics/a2": 17,
+    "edexcel-ial/physics/international-as": 0,
+    "nctb/bangla/ssc": 0,
+    "nctb/biology/ssc": 0,
+    "nctb/chemistry/ssc": 0,
+    "nctb/english/ssc": 43,
+    "nctb/ict/ssc": 120,
+    "nctb/mathematics/ssc": 0,
+    "nctb/physics/ssc": 0
+  },
+  "chunk_counts_after": {
+    "edexcel-ial/physics/a2": 59,
+    "edexcel-ial/physics/international-as": 41,
+    "nctb/bangla/ssc": 0,
+    "nctb/biology/ssc": 0,
+    "nctb/chemistry/ssc": 0,
+    "nctb/english/ssc": 43,
+    "nctb/ict/ssc": 120,
+    "nctb/mathematics/ssc": 0,
+    "nctb/physics/ssc": 0
+  }
+}

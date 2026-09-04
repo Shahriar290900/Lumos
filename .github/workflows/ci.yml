@@ -109,6 +109,40 @@ jobs:
         # must work without them.
         run: python packages/db/seed/curriculum_seed.py --audit evidence/curriculum_audit_local.json
 
+      - name: Normalise the legacy corpus
+        # The legacy corpora live in the reference repository cloned above. The
+        # private Edexcel PDFs are not in CI, so only this adapter runs here.
+        run: |
+          python scripts/normalise_corpus.py legacy \
+            --corpus-root /tmp/legacy/raw_data \
+            --output /tmp/legacy_normalisation.json
+
+      - name: Normalisation is idempotent
+        run: |
+          python scripts/normalise_corpus.py legacy \
+            --corpus-root /tmp/legacy/raw_data --output /tmp/second_run.json
+          python - <<'PY'
+          import json
+          second = json.load(open("/tmp/second_run.json"))["write"]
+          assert second["created"] == 0, f"second run created {second['created']} chunks"
+          assert second["updated"] == 0, f"second run updated {second['updated']} chunks"
+          assert second["unchanged"] > 0, "second run saw nothing — did the first run write?"
+          print(f"idempotent: {second['unchanged']} chunks unchanged, none written")
+          PY
+
+      - name: Normalisation reconciles with the committed evidence
+        run: |
+          python - <<'PY'
+          import json
+          fresh = json.load(open("/tmp/legacy_normalisation.json"))
+          committed = json.load(open("evidence/legacy_normalisation.json"))
+          for slug, r in committed["reconciliation"].items():
+              assert fresh["reconciliation"][slug]["canonical_chunks"] == r["canonical_chunks"], slug
+              assert fresh["reconciliation"][slug]["matches"], f"{slug} does not reconcile"
+          assert fresh["source_records"] == committed["source_records"]
+          print(f"reconciled: {fresh['source_records']} records -> canonical chunks")
+          PY
+
       - name: Registry agrees with its evidence
         run: python scripts/check_registry_consistency.py --audit evidence/curriculum_audit_local.json
 
@@ -147,20 +181,29 @@ jobs:
       - run: python packages/db/migrate.py up
       - run: python packages/db/seed/curriculum_seed.py --audit evidence/curriculum_audit_local.json
       - name: CURRICULUM_INVENTORY.md matches the registry
-        # Without the source catalogue the PDF section differs, so compare only
-        # the registry-derived sections.
+        # CI holds neither the private PDFs nor the exam chunks derived from
+        # them, so the source-document and canonical-chunk sections legitimately
+        # differ here. Compare the sections that depend only on the registry and
+        # the committed audit evidence — those must never drift.
         run: |
           python scripts/generate_inventory.py --output /tmp/inventory.md
           python - <<'PY'
           import re
-          def sections(path):
+          SECTIONS = [
+              r"### Why each offering is unavailable(.*?)\n## ",
+              r"## Audited legacy corpus(.*?)\n## ",
+          ]
+          def extract(path):
               text = open(path, encoding="utf-8").read()
-              # Availability and audited-corpus sections are catalogue-independent.
-              m = re.search(r"## Offerings and availability(.*?)## Registered source documents",
-                            text, re.S)
-              assert m, f"could not find the registry sections in {path}"
-              return m.group(1)
-          a, b = sections("/tmp/inventory.md"), sections("CURRICULUM_INVENTORY.md")
-          assert a == b, "CURRICULUM_INVENTORY.md is stale — run scripts/generate_inventory.py"
+              out = []
+              for pattern in SECTIONS:
+                  m = re.search(pattern, text, re.S)
+                  assert m, f"section not found in {path}: {pattern}"
+                  out.append(m.group(1))
+              return out
+          fresh, committed = extract("/tmp/inventory.md"), extract("CURRICULUM_INVENTORY.md")
+          assert fresh == committed, (
+              "CURRICULUM_INVENTORY.md is stale — regenerate it with "
+              "scripts/generate_inventory.py")
           print("inventory is current")
           PY

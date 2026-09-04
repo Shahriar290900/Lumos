@@ -94,3 +94,27 @@
 **Decision:** `private_source_materials/` is gitignored, `.githooks/pre-commit` refuses any commit touching that path, any PDF outside `docs/`, any file over 10 MB, and any file matching a credential pattern; and a CI job fails the build if any of those are tracked.
 **Reason:** the licensed material sits inside the repository working tree for convenience, which puts 125 MB of Pearson copyright one `git add -A` away from a public push. `.gitignore` alone does not survive `git add -f`.
 **Consequence:** the hook needs `git config core.hooksPath .githooks` once per clone; CI is the backstop for anyone who has not run it. Derived chunk text is treated as licensed too — retrieval context only, never redistributed.
+
+## ADR-018 — Chunk identity is derived, not assigned
+**Status:** Accepted · **Date:** 2026-09-04
+**Decision:** a chunk's id is `uuid5(LUMOS_CHUNK_NAMESPACE, chunk_key)`, where the key is `lumos:v<n>:<source document sha256>:<locator>`. The key is stored alongside the id.
+**Reason:** two properties fall out of it that an assigned id cannot give. Determinism — the same input always yields the same id, so re-running an adapter updates rather than duplicates, which is what makes ingestion idempotent rather than merely repeatable. And collision safety — because the document's checksum is inside the key, "question 12" of WPH11 and "question 12" of WPH12 are different chunks without any paper-code or session convention having to be remembered by every adapter.
+**Consequence:** `CHUNK_KEY_VERSION` is bumped only when the key *format* changes, because that re-identifies every chunk; `INGESTION_VERSION` moves independently and records which pipeline produced the text. `scripts/check_registry_consistency.py` recomputes every stored id from its key and fails the build on a mismatch, so a chunk written outside the model is caught rather than silently trusted.
+
+## ADR-019 — Canonical document type names
+**Status:** Accepted · **Date:** 2026-09-04 · **Supersedes part of ADR-009's vocabulary
+**Decision:** `document_type` uses `past_paper`, `specification` and `legacy_corpus` where 0001 used `question_paper`, `syllabus` and `legacy_jsonl`. Migration 0002 renames the values and maps every existing row; the down migration maps them back.
+**Reason:** one name per concept, matching how Pearson and NCTB actually refer to these documents, and matching the source-type vocabulary the product specifies. `legacy_jsonl` also named a file format rather than a role, which would have aged badly the moment a legacy corpus arrived in another format.
+**Consequence:** mark schemes and examiner reports remain separate types and are never collapsed into a generic document. They carry different authority and answer different questions for a student: a mark scheme says what earns the marks, an examiner report says what candidates actually got wrong.
+
+## ADR-020 — Three chunk counts, three meanings
+**Status:** Accepted · **Date:** 2026-09-04 · **Extends ADR-014
+**Decision:** an offering carries three distinct counts. **Audited** (`corpus_snapshots.record_count`) is what an auditor found in the source material. **Canonical** (`curriculum_availability.canonical_chunk_count`, computed from the chunks table) is what normalisation produced. **Indexed** (`subject_offerings.indexed_chunk_count`) is what is embedded and lexically searchable. Only the third can make a subject available.
+**Reason:** after 004B the legacy corpora have 180 canonical chunks and zero indexed chunks. A single count would have to mean one or the other, and either choice misreports the rest. This is the same failure mode as the prebuild pack's 1,022 — a real-sounding number attached to nothing in particular.
+**Consequence:** `canonical_chunk_count` is a view subquery, not a stored column, so it cannot be set by hand and cannot drift. The availability rule is unchanged: normalised is not searchable, so chunks existing never flips a subject to available on their own.
+
+## ADR-021 — Provenance is recorded per chunk, and transformations keep their input
+**Status:** Accepted · **Date:** 2026-09-04
+**Decision:** every chunk carries `extraction_method`, `provenance_status` and, whenever the stored text differs from what extraction produced, `text_raw`. `provenance_status` is `verbatim` only when nothing changed; a transformed chunk is `cleaned`, `normalized` or `derived`, and OCR output that is not asserted exact is `ocr_uncertain`. The database refuses a transformed chunk with no raw text, and refuses an uncertainty claim from an extractor that cannot be uncertain.
+**Reason:** the corpus is heterogeneous in a way that makes a corpus-level label a lie. Within one examination session some examiner reports parse cleanly and others decode to `(cid:N)` glyphs; *Student Book 1* has no text layer at all on any of 225 pages. A reader must be able to tell, per chunk, whether they are looking at what the document says or at what a pipeline made of it.
+**Consequence:** the status reflects what actually happened to that chunk, not a blanket claim about the batch — of the 120 normalised ICT records, 105 are `verbatim` and 15 are `normalized`, because Unicode normalisation changed only those 15. A transformation that cannot be inspected is a transformation that cannot be trusted, so `text_raw` is never dropped.

@@ -12,17 +12,19 @@ Generated: 2026-09-04
 
 ## Offerings and availability
 
-| Offering | Curriculum | Subject | Level | Status | Indexed chunks | Sources | Available |
-|---|---|---|---|---|---:|---:|---|
-| `edexcel-ial/physics/international-as` | EDEXCEL_IAL | Physics | International AS | in preparation | 0 | 10 | no |
-| `edexcel-ial/physics/a2` | EDEXCEL_IAL | Physics | International A2 | planned — no corpus | 0 | 10 | no |
-| `nctb/bangla/ssc` | NCTB | Bangla | Secondary School Certificate | planned — no corpus | 0 | 0 | no |
-| `nctb/biology/ssc` | NCTB | Biology | Secondary School Certificate | planned — no corpus | 0 | 0 | no |
-| `nctb/chemistry/ssc` | NCTB | Chemistry | Secondary School Certificate | planned — no corpus | 0 | 0 | no |
-| `nctb/english/ssc` | NCTB | English | Secondary School Certificate | in preparation | 0 | 16 | no |
-| `nctb/ict/ssc` | NCTB | ICT | Secondary School Certificate | in preparation | 0 | 6 | no |
-| `nctb/mathematics/ssc` | NCTB | Mathematics | Secondary School Certificate | planned — no corpus | 0 | 0 | no |
-| `nctb/physics/ssc` | NCTB | Physics | Secondary School Certificate | planned — no corpus | 0 | 0 | no |
+| Offering | Curriculum | Subject | Level | Status | Sources | Canonical | Indexed | Available |
+|---|---|---|---|---|---:|---:|---:|---|
+| `edexcel-ial/physics/international-as` | EDEXCEL_IAL | Physics | International AS | in preparation | 10 | 41 | 0 | no |
+| `edexcel-ial/physics/a2` | EDEXCEL_IAL | Physics | International A2 | planned — no corpus | 10 | 59 | 0 | no |
+| `nctb/bangla/ssc` | NCTB | Bangla | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
+| `nctb/biology/ssc` | NCTB | Biology | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
+| `nctb/chemistry/ssc` | NCTB | Chemistry | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
+| `nctb/english/ssc` | NCTB | English | Secondary School Certificate | in preparation | 16 | 43 | 0 | no |
+| `nctb/ict/ssc` | NCTB | ICT | Secondary School Certificate | in preparation | 6 | 120 | 0 | no |
+| `nctb/mathematics/ssc` | NCTB | Mathematics | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
+| `nctb/physics/ssc` | NCTB | Physics | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
+
+Three counts, three different things (ADR-014, ADR-020): **audited** is what an auditor found in the source material, **canonical** is what normalisation produced, **indexed** is what is embedded and lexically searchable. Only the last one can make a subject available.
 
 **No offering is currently available.** Nothing has been ingested, so nothing may be queried. The API refuses every offering above before retrieval runs.
 
@@ -61,6 +63,31 @@ Registry snapshots, each carrying the method and evidence file it came from:
 
 These are **audited** counts of legacy source records, not indexed chunks. `indexed_chunk_count` stays 0 until the records are normalised, cleaned, re-chunked and written to the store — which is why no offering is available.
 
+## Canonical chunks
+
+| Offering | Chunk type | Extraction | Provenance | Count | Median tokens |
+|---|---|---|---|---:|---:|
+| `edexcel-ial/physics/a2` | exam_question | pdf_text_layer | cleaned | 42 | 127 |
+| `edexcel-ial/physics/a2` | legacy_record | structured_jsonl | verbatim | 17 | 278 |
+| `edexcel-ial/physics/international-as` | exam_question | pdf_text_layer | cleaned | 41 | 133 |
+| `nctb/english/ssc` | legacy_record | structured_jsonl | verbatim | 43 | 1182 |
+| `nctb/ict/ssc` | legacy_record | structured_jsonl | normalized | 15 | 580 |
+| `nctb/ict/ssc` | legacy_record | structured_jsonl | verbatim | 105 | 607 |
+
+**263 canonical chunks total.** Provenance is recorded per chunk, not per corpus: `verbatim` means the stored text is exactly what extraction produced, `cleaned` means layout furniture was removed, `normalized` means Unicode normalisation changed something. Anything other than verbatim keeps its untransformed text.
+
+### Normalisation runs
+
+| Offering | Adapter | Version | Source records | Created | Updated | Unchanged |
+|---|---|---|---:|---:|---:|---:|
+| `edexcel-ial/physics/a2` | legacy_corpus | 004b.1 | 17 | 17 | 0 | 0 |
+| `edexcel-ial/physics/a2` | past_paper | 004b.1 | 4 | 4 | 0 | 0 |
+| `nctb/english/ssc` | legacy_corpus | 004b.1 | 43 | 43 | 0 | 0 |
+| `edexcel-ial/physics/international-as` | past_paper | 004b.1 | 18 | 18 | 0 | 0 |
+| `nctb/ict/ssc` | legacy_corpus | 004b.1 | 120 | 120 | 0 | 0 |
+
+Latest run per adapter. A re-run over unchanged input reports only `unchanged`, which is what makes normalisation safe to repeat.
+
 ## Registered source documents
 
 19 licensed PDFs (125 MB) catalogued by `scripts/catalog_sources.py`. The files themselves are private and are never committed; only their metadata appears here.
@@ -70,15 +97,15 @@ These are **audited** counts of legacy source records, not indexed chunks. `inde
 | `edexcel-ial/physics/a2` | examiner_report | 1 | 2 | 121 | mixed |
 | `edexcel-ial/physics/a2` | examiner_report | 1 | 1 | 49 | text |
 | `edexcel-ial/physics/a2` | mark_scheme | 1 | 3 | 48 | text |
-| `edexcel-ial/physics/a2` | question_paper | 1 | 3 | 88 | text |
-| `edexcel-ial/physics/a2` | legacy_jsonl | 2 | 1 | — | structured |
+| `edexcel-ial/physics/a2` | past_paper | 1 | 3 | 88 | text |
+| `edexcel-ial/physics/a2` | legacy_corpus | 2 | 1 | — | structured |
 | `edexcel-ial/physics/international-as` | examiner_report | 1 | 2 | 84 | ocr_required |
 | `edexcel-ial/physics/international-as` | examiner_report | 1 | 1 | 82 | text |
 | `edexcel-ial/physics/international-as` | mark_scheme | 1 | 3 | 45 | text |
-| `edexcel-ial/physics/international-as` | question_paper | 1 | 3 | 76 | text |
+| `edexcel-ial/physics/international-as` | past_paper | 1 | 3 | 76 | text |
 | `edexcel-ial/physics/international-as` | textbook | 2 | 1 | 225 | ocr_required |
-| `nctb/english/ssc` | legacy_jsonl | 2 | 16 | — | structured |
-| `nctb/ict/ssc` | legacy_jsonl | 2 | 6 | — | structured |
+| `nctb/english/ssc` | legacy_corpus | 2 | 16 | — | structured |
+| `nctb/ict/ssc` | legacy_corpus | 2 | 6 | — | structured |
 
 Priority 1 is official examination material, 2 core textbook, 3 supplementary (ADR-009). The ingestion route is recorded per document, not per corpus: within one session some examiner reports carry a usable text layer and others decode to `(cid:N)` glyphs and need OCR.
 

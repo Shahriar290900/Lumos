@@ -13,15 +13,15 @@ A goal is complete only when its acceptance criteria are met **and** the evidenc
 
 ## Phase 0.5 — Curriculum and data foundation
 - [x] **LUMOS-004A Curriculum registry + coverage gates** — evidence: `packages/db/migrations/0001_curriculum_registry.up.sql`, 47 passing tests, `scripts/check_registry_consistency.py`, generated `CURRICULUM_INVENTORY.md`
-- [ ] **LUMOS-004B Canonical chunk schema + legacy normalisation adapter** ← **NEXT GOAL**
-- [ ] LUMOS-004C Corpus cleaning: dedup, Unicode NFC, Bangla repair, re-chunking
+- [x] **LUMOS-004B Canonical chunk schema + legacy normalisation adapter** — evidence: migration 0002, 263 canonical chunks, 120 passing tests, `evidence/legacy_normalisation.json`
+- [ ] **LUMOS-004C Corpus cleaning: Bangla repair, boundary repair, re-chunking** ← **NEXT GOAL**
 - [ ] LUMOS-004D Licence and provenance registry
 - [!] LUMOS-004E Retrieval evaluation set per available corpus — *needs subject-teacher review*
 
 ## Phase 1 — Product MVP
 - [!] LUMOS-005 Authentication + roles — *blocked: BLOCK-006, BLOCK-007*
 - [~] LUMOS-006 Neon schema + migrations — *migration runner and first migration exist and are tested locally; deployment blocked by BLOCK-002*
-- [ ] LUMOS-007 Curriculum ingestion MVP — *scope settled; design in `docs/INGESTION_DESIGN.md`*
+- [~] LUMOS-007 Curriculum ingestion MVP — *past-paper adapter done; mark schemes, examiner reports and the OCR textbook path remain*
 - [ ] LUMOS-008 Hybrid retrieval with RRF on pgvector + Postgres FTS
 - [ ] LUMOS-009 BGE reranking + source-priority policy
 - [ ] LUMOS-010 Tutor API + SSE streaming
@@ -70,20 +70,52 @@ Beyond scope, because the material arrived mid-goal: 19 private Edexcel PDFs cat
 
 ---
 
-## LUMOS-004B — Canonical chunk schema + legacy normalisation adapter
+## LUMOS-004B — Canonical chunk schema + legacy normalisation adapter — COMPLETE (2026-09-04)
 
-**Depends on:** LUMOS-004A (complete)
-**Blocks:** LUMOS-004C, LUMOS-007, LUMOS-008
+All acceptance criteria met, verified by an end-to-end run from an empty database.
 
-**Description.** Create the `chunks` table implementing `docs/CHUNK_SCHEMA.md`, and a legacy adapter mapping the three observed JSONL shapes onto it: deduplicate by content hash (137 records exist identically in both repositories), reconcile `chapter_title` / `chapter_name` (80 / 100 split), inject `curriculum`, `language`, `document_type` and `source_priority`, recompute `token_count` with the real tokeniser, resolve free-text prerequisites to IDs where possible, and emit a per-corpus ingestion report.
+| Criterion | Evidence |
+|---|---|
+| A canonical schema exists and is documented | `packages/db/migrations/0002_canonical_chunks.up.sql`, `docs/CHUNK_SCHEMA.md` |
+| The 180 legacy chunks normalise into it | run: 23 documents, 180 source records, 180 chunks — ICT 120, English 43, Physics 17 |
+| Normalisation is deterministic and idempotent | second run: `created=0 updated=0 unchanged=180`; `test_writing_the_same_chunks_twice_changes_nothing` |
+| Provenance is preserved | `extraction_method`, `provenance_status`, `text_raw`, `legacy_metadata` on every chunk; schema refuses a transformed chunk with no raw text |
+| Source, document and session distinctions preserved | `chunk_retrieval_context` carries `document_type`, `source_priority`, `paper_code`, `session_year`, `session_series` |
+| A complete exam question is one structural chunk | `test_a_whole_question_is_stored_and_retrieved_as_one_unit`; 41 AS questions, each with its sub-parts |
+| The schema supports the May/June 2024 demo set | 83 questions / 440 marks parsed and stored across WPH11–16 |
+| Extraction method and uncertainty are explicit | per-document routing; 105 ICT records `verbatim` and 15 `normalized`, reflecting what actually changed |
+| 004A behaviour intact | availability unchanged; no offering became available; all 004A tests still pass |
+| Full suite passes | 120 tests |
+| Empty-database migration works | `migrate up` from empty → 9 tables, 2 views |
+| Migration reversal works | `down` → 0002 removed, registry intact; `down --to 0000` → empty |
+| Consistency checks pass | `check_registry_consistency.py` OK, and proved to fire on injected identity drift |
+| No private PDFs committed | `.gitignore`, pre-commit hook, CI guard; evidence files hold counts only |
+| Documentation reflects verified state | `CURRICULUM_INVENTORY.md` regenerated from the registry |
+
+Defects found and fixed along the way: the 004A seed wrote doubled legacy paths
+(`raw_data/raw_data/...`); the 0002 down migration dropped `chunks` before the
+view that reads it; single-letter Roman numerals `(i)`/`(v)`/`(x)` were parsed as
+first-level sub-parts; and the legacy reconciliation counted every chunk in an
+offering rather than only its legacy records.
+
+---
+
+## LUMOS-004C — Corpus cleaning and re-chunking
+
+**Depends on:** LUMOS-004B (complete)
+**Blocks:** LUMOS-008 (nothing should be indexed before it is clean)
+
+**Description.** Repair and re-chunk the normalised legacy corpora, and extend
+ingestion to the source types the past-paper adapter does not yet cover.
 
 **Acceptance criteria**
-- [ ] `chunks` table with the canonical fields, `provenance_hash` unique, and a foreign key to `source_documents`
-- [ ] Adapter maps all 180 legacy records with zero data loss; original text retained alongside canonical text
-- [ ] Deduplication proven on the 137 cross-repository duplicates
-- [ ] `chapter_title` and `chapter_name` both resolve; no chunk carries a null chapter label
-- [ ] `token_count` recomputed; legacy values retained for comparison but never trusted
-- [ ] Per-corpus ingestion report written to `evidence/`, reviewed before any status change
-- [ ] `indexed_chunk_count` updated from the chunks table, never set by hand
-- [ ] Consistency gate extended to compare chunk counts against the adapter's output
-- [ ] Unit tests per transformation; no network, no model provider
+- [ ] Bangla vowel-sign and conjunct repair applied to the 73 damaged ICT records, with a reviewed sample and a measured before/after
+- [ ] English re-chunked from ~2,000-token whole units to 400–600-token sections with 50-token overlap at real boundaries
+- [ ] Repaired chunks are `derived`, not `verbatim`, and keep their original text
+- [ ] Bullet-glyph and mid-word truncation repair for English records
+- [ ] Mark-scheme adapter, including the MCQ table strategy the terminator does not cover
+- [ ] Examiner-report adapter, discarding handwritten candidate-script regions
+- [ ] OCR path for the 225-page textbook, with per-page confidence recorded
+- [ ] Every cleaning rule is a separate, reversible stage with its own test
+- [ ] Re-chunking preserves provenance: every derived chunk traces to its source page
+- [ ] Counts reconcile after re-chunking, with the change explained in the run report

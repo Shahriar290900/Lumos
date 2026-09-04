@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T00:30:18+00:00",
+  "generated_at": "2026-09-04T01:06:59+00:00",
   "root": "/mnt/user-data/uploads/Lumos/lumos/private_source_materials",
   "note": "Metadata only. No document content appears in this file. The PDFs described here are licensed material and must never be committed.",
   "document_count": 19,
@@ -7,7 +7,7 @@
   "by_document_type": {
     "examiner_report": 6,
     "mark_scheme": 6,
-    "question_paper": 6,
+    "past_paper": 6,
     "textbook": 1
   },
   "by_ingestion_route": {
@@ -332,7 +332,7 @@
     {
       "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph11-01-que-20240511.pdf",
       "subject_folder": "Edexcel Physics",
-      "document_type": "question_paper",
+      "document_type": "past_paper",
       "source_priority": 1,
       "session": {
         "year": 2024,
@@ -358,7 +358,7 @@
     {
       "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph12-01-que-20240516.pdf",
       "subject_folder": "Edexcel Physics",
-      "document_type": "question_paper",
+      "document_type": "past_paper",
       "source_priority": 1,
       "session": {
         "year": 2024,
@@ -384,7 +384,7 @@
     {
       "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph13-01-que-20240521.pdf",
       "subject_folder": "Edexcel Physics",
-      "document_type": "question_paper",
+      "document_type": "past_paper",
       "source_priority": 1,
       "session": {
         "year": 2024,
@@ -410,7 +410,7 @@
     {
       "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph14-01-que-20240601.pdf",
       "subject_folder": "Edexcel Physics",
-      "document_type": "question_paper",
+      "document_type": "past_paper",
       "source_priority": 1,
       "session": {
         "year": 2024,
@@ -436,7 +436,7 @@
     {
       "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph15-01-que-20240606.pdf",
       "subject_folder": "Edexcel Physics",
-      "document_type": "question_paper",
+      "document_type": "past_paper",
       "source_priority": 1,
       "session": {
         "year": 2024,
@@ -462,7 +462,7 @@
     {
       "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph16-01-que-20240611.pdf",
       "subject_folder": "Edexcel Physics",
-      "document_type": "question_paper",
+      "document_type": "past_paper",
       "source_priority": 1,
       "session": {
         "year": 2024,

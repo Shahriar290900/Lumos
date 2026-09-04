@@ -47,12 +47,36 @@ def fetch(conn: psycopg.Connection) -> dict[str, Any]:
                    subject_name_en, subject_name_bn, level_code, level_name,
                    level_sort_order, syllabus_version_code, languages,
                    publication_status, indexing_status, evaluation_status,
-                   indexed_chunk_count, source_document_count, is_available,
+                   indexed_chunk_count, canonical_chunk_count,
+                   source_document_count, is_available,
                    blocked_reasons, display_note_en
-            FROM curriculum_availability
+            FROM curriculum_availability o
             ORDER BY curriculum_code, level_sort_order, subject_code
             """)
         offerings = [dict(r) for r in cur.fetchall()]
+
+        cur.execute(
+            """
+            SELECT o.slug, c.chunk_type::text AS chunk_type,
+                   c.extraction_method::text AS extraction_method,
+                   c.provenance_status::text AS provenance_status,
+                   count(*) AS n, round(avg(c.token_count)) AS avg_tokens
+            FROM chunks c
+            JOIN subject_offerings o ON o.id = c.offering_id
+            GROUP BY 1, 2, 3, 4 ORDER BY 1, 2, 3
+            """)
+        chunks = [dict(r) for r in cur.fetchall()]
+
+        cur.execute(
+            """
+            SELECT DISTINCT ON (offering_id, adapter)
+                   o.slug, r.adapter, r.ingestion_version, r.source_records,
+                   r.chunks_created, r.chunks_updated, r.chunks_unchanged
+            FROM normalisation_runs r
+            JOIN subject_offerings o ON o.id = r.offering_id
+            ORDER BY offering_id, adapter, r.started_at DESC
+            """)
+        runs = [dict(r) for r in cur.fetchall()]
 
         cur.execute(
             """
@@ -75,7 +99,8 @@ def fetch(conn: psycopg.Connection) -> dict[str, Any]:
             """)
         documents = [dict(r) for r in cur.fetchall()]
 
-    return {"offerings": offerings, "snapshots": snapshots, "documents": documents}
+    return {"offerings": offerings, "snapshots": snapshots,
+            "documents": documents, "chunks": chunks, "runs": runs}
 
 
 def render(data: dict[str, Any], audit: dict[str, Any], catalog: dict[str, Any] | None) -> str:
@@ -106,13 +131,18 @@ def render(data: dict[str, Any], audit: dict[str, Any], catalog: dict[str, Any] 
     # ── availability ─────────────────────────────────────────────────────────
     add("## Offerings and availability")
     add("")
-    add("| Offering | Curriculum | Subject | Level | Status | Indexed chunks | Sources | Available |")
-    add("|---|---|---|---|---|---:|---:|---|")
+    add("| Offering | Curriculum | Subject | Level | Status | Sources | Canonical | Indexed | Available |")
+    add("|---|---|---|---|---|---:|---:|---:|---|")
     for r in o:
         add(f"| `{r['slug']}` | {r['curriculum_code']} | {r['subject_name_en']} | "
             f"{r['level_name']} | {STATUS_WORDS.get(r['publication_status'], r['publication_status'])} | "
-            f"{r['indexed_chunk_count']} | {r['source_document_count']} | "
-            f"{'yes' if r['is_available'] else 'no'} |")
+            f"{r['source_document_count']} | {r['canonical_chunk_count']} | "
+            f"{r['indexed_chunk_count']} | {'yes' if r['is_available'] else 'no'} |")
+    add("")
+    add("Three counts, three different things (ADR-014, ADR-020): **audited** is what "
+        "an auditor found in the source material, **canonical** is what normalisation "
+        "produced, **indexed** is what is embedded and lexically searchable. Only the "
+        "last one can make a subject available.")
     add("")
 
     available = [r for r in o if r["is_available"]]
@@ -162,6 +192,37 @@ def render(data: dict[str, Any], audit: dict[str, Any], catalog: dict[str, Any] 
         "`indexed_chunk_count` stays 0 until the records are normalised, cleaned, "
         "re-chunked and written to the store — which is why no offering is available.")
     add("")
+
+    # ── canonical chunks ─────────────────────────────────────────────────────
+    if data["chunks"]:
+        add("## Canonical chunks")
+        add("")
+        add("| Offering | Chunk type | Extraction | Provenance | Count | Median tokens |")
+        add("|---|---|---|---|---:|---:|")
+        for c in data["chunks"]:
+            add(f"| `{c['slug']}` | {c['chunk_type']} | {c['extraction_method']} | "
+                f"{c['provenance_status']} | {c['n']} | {c['avg_tokens'] or '—'} |")
+        add("")
+        add(f"**{sum(c['n'] for c in data['chunks'])} canonical chunks total.** "
+            "Provenance is recorded per chunk, not per corpus: `verbatim` means the "
+            "stored text is exactly what extraction produced, `cleaned` means layout "
+            "furniture was removed, `normalized` means Unicode normalisation changed "
+            "something. Anything other than verbatim keeps its untransformed text.")
+        add("")
+
+    if data["runs"]:
+        add("### Normalisation runs")
+        add("")
+        add("| Offering | Adapter | Version | Source records | Created | Updated | Unchanged |")
+        add("|---|---|---|---:|---:|---:|---:|")
+        for r in data["runs"]:
+            add(f"| `{r['slug']}` | {r['adapter']} | {r['ingestion_version']} | "
+                f"{r['source_records']} | {r['chunks_created']} | {r['chunks_updated']} | "
+                f"{r['chunks_unchanged']} |")
+        add("")
+        add("Latest run per adapter. A re-run over unchanged input reports only "
+            "`unchanged`, which is what makes normalisation safe to repeat.")
+        add("")
 
     # ── source documents ─────────────────────────────────────────────────────
     add("## Registered source documents")

@@ -14,7 +14,12 @@ This is the thing positioned to notice. It fails the build when:
     or its checksum has changed,
   * an offering claims to be indexed with no chunks, or available with no
     evidence behind it,
-  * the availability view contradicts itself (available, yet blocked).
+  * the availability view contradicts itself (available, yet blocked),
+  * a canonical chunk's identity does not derive from its own chunk key,
+  * a chunk's key does not embed the checksum of the document it came from,
+  * a chunk sits in a different offering from its source document,
+  * a normalised legacy corpus has a different chunk count from the audited
+    record count.
 
 Usage
 -----
@@ -42,6 +47,9 @@ import psycopg
 from psycopg.rows import dict_row
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT))
+
+from services.ingestion.canonical import make_chunk_id  # noqa: E402
 
 # Which audited subject in the corpus auditor's output backs which offering.
 SNAPSHOT_SUBJECT_BY_SLUG = {
@@ -94,14 +102,19 @@ def check(conn: psycopg.Connection, audit: dict, catalog: dict | None
             failures.append(
                 f"snapshot total {total_snapshotted} != auditor total {audit.get('total_records')}")
 
-        # ── 2. source documents against the catalogue ────────────────────────
+        # ── 2. private source documents against the catalogue ────────────────
+        #
+        # Scoped to private material because that is what the catalogue
+        # describes. Legacy JSONL checksums are backfilled by the normalisation
+        # adapter from the files themselves and are reconciled against the corpus
+        # auditor in check 7, not against this catalogue.
         cur.execute(
             """
             SELECT o.slug, sd.filename, sd.sha256, sd.page_count,
                    sd.ingestion_route::text AS ingestion_route, sd.is_private
             FROM source_documents sd
             JOIN subject_offerings o ON o.id = sd.offering_id
-            WHERE sd.sha256 IS NOT NULL
+            WHERE sd.sha256 IS NOT NULL AND sd.is_private = true
             """)
         registry_docs = cur.fetchall()
 
@@ -137,7 +150,7 @@ def check(conn: psycopg.Connection, audit: dict, catalog: dict | None
             SELECT o.slug, sd.filename
             FROM source_documents sd
             JOIN subject_offerings o ON o.id = sd.offering_id
-            WHERE sd.is_private = false AND sd.document_type <> 'legacy_jsonl'
+            WHERE sd.is_private = false AND sd.document_type <> 'legacy_corpus'
             """)
         for row in cur.fetchall():
             failures.append(
@@ -168,7 +181,66 @@ def check(conn: psycopg.Connection, audit: dict, catalog: dict | None
             if row["source_document_count"] <= 0:
                 failures.append(f"{row['slug']}: available with no source documents")
 
-        # ── 6. anything visible but unusable must explain itself ─────────────
+        # ── 6. canonical chunk identity ──────────────────────────────────────
+        #
+        # Identity is derived, not assigned. If a stored id does not match the
+        # uuid5 of its own key, something wrote a chunk outside the model and
+        # idempotency can no longer be relied on.
+        cur.execute("SELECT id, chunk_key FROM chunks")
+        for row in cur.fetchall():
+            expected = str(make_chunk_id(row["chunk_key"]))
+            if str(row["id"]) != expected:
+                failures.append(
+                    f"chunk {row['id']}: id does not derive from its chunk_key "
+                    f"(expected {expected})")
+
+        # The document checksum inside the key is what prevents identity
+        # collision between the same question in different papers.
+        cur.execute(
+            """
+            SELECT c.id, c.chunk_key, sd.sha256, sd.filename
+            FROM chunks c JOIN source_documents sd ON sd.id = c.source_document_id
+            WHERE sd.sha256 IS NOT NULL
+              AND position(sd.sha256 in c.chunk_key) = 0
+            """)
+        for row in cur.fetchall():
+            failures.append(
+                f"chunk {row['id']}: key does not embed the checksum of "
+                f"'{row['filename']}' — identity is not anchored to a document")
+
+        cur.execute(
+            """
+            SELECT c.id FROM chunks c
+            JOIN source_documents sd ON sd.id = c.source_document_id
+            WHERE c.offering_id <> sd.offering_id
+            """)
+        for row in cur.fetchall():
+            failures.append(
+                f"chunk {row['id']}: offering differs from its source document's "
+                "— curriculum isolation would be violated")
+
+        # ── 7. normalised legacy corpora must match the auditor ──────────────
+        cur.execute(
+            """
+            SELECT o.slug, count(*) AS n
+            FROM chunks c
+            JOIN subject_offerings o ON o.id = c.offering_id
+            WHERE c.chunk_type = 'legacy_record'
+            GROUP BY o.slug
+            """)
+        legacy_counts = {r["slug"]: r["n"] for r in cur.fetchall()}
+        for slug, subject in SNAPSHOT_SUBJECT_BY_SLUG.items():
+            actual = legacy_counts.get(slug)
+            expected = audited.get(subject)
+            if actual is None:
+                notes.append(f"{slug}: legacy corpus not yet normalised")
+                continue
+            if expected is not None and actual != expected:
+                failures.append(
+                    f"{slug}: {actual} legacy chunks from {expected} audited records "
+                    "— normalisation lost or invented records")
+
+        # ── 8. anything visible but unusable must explain itself ─────────────
         cur.execute(
             """
             SELECT slug FROM curriculum_availability

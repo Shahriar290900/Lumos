@@ -60,15 +60,16 @@ UNIT_CODES = {
 # Priority follows ADR-009: 1 = official/authoritative, 2 = core textbook,
 # 3 = supplementary. Lower number wins when context is contested.
 DIR_TYPES = {
-    "question-paper": ("question_paper", 1),
+    "question-paper": ("past_paper", 1),
     "mark-scheme": ("mark_scheme", 1),
     "examiner-report": ("examiner_report", 1),
+    "specification": ("specification", 1),
     "textbooks": ("textbook", 2),
     "revision-guide": ("revision_guide", 3),
     "topic-notes": ("topic_notes", 3),
 }
 
-FILE_TYPE_HINTS = {"que": "question_paper", "rms": "mark_scheme", "pef": "examiner_report"}
+FILE_TYPE_HINTS = {"que": "past_paper", "rms": "mark_scheme", "pef": "examiner_report"}
 
 CID_RE = re.compile(r"\(cid:\d+\)")
 SESSION_RE = re.compile(r"^(\d{4})\s+(.+)$")

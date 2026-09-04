@@ -9,8 +9,9 @@ A2 units 4–6 are held and catalogued but out of scope; Student Book 1 covers
 Topics 1–4, which is AS content, so those units would have papers with no
 textbook layer beneath them.
 
-**Status:** design only. No ingestion has run. This document is the input to
-LUMOS-007.
+**Status:** partly implemented. The past-paper adapter is built, run and tested
+(`services/ingestion/past_paper.py`); mark schemes, examiner reports and the
+textbook OCR path are designed here but not yet built. See §9.
 
 ---
 
@@ -287,7 +288,49 @@ These are constraints on the pipeline, not aspirations.
 
 ---
 
-## 8. What this predicts
+## 8. What has been built (LUMOS-004B)
+
+The question-paper path is implemented and has been run against all six papers.
+
+| Predicted in this document | Actual |
+|---|---|
+| Terminator is a reliable boundary | **19/19 in WPH11**, and no numbering gap in any of the six papers |
+| ~41 question chunks in the AS scope | **41** — WPH11 19, WPH12 18, WPH13 4 |
+| 210 marks in the AS scope | **210** |
+| Sub-parts detected, question not split | 2–5 sub-parts on structured questions, 0 on MCQs; one chunk per question |
+
+Across all six units: **83 questions, 440 marks.**
+
+Two things the implementation learned that the design did not anticipate:
+
+1. **Single-letter Roman numerals are ambiguous.** `(i)`, `(v)` and `(x)` match
+   both the first-level `(a)` pattern and the nested `(i)` pattern, so `(i)`
+   opened a bogus first level and adopted `(ii)` as its child. Resolved by
+   position: a numeral-shaped label is nested only once a first-level part has
+   opened, which is how these papers are laid out — `(a)` then `(i)`, never the
+   reverse.
+2. **Dot-leader runs dominate structured pages.** Answer lines can outweigh the
+   question text, so any length or token measurement taken before cleaning is
+   simply wrong. Cleaning now precedes every measurement, and the raw text is
+   retained in `text_raw` so nothing is silently discarded.
+
+Provenance is recorded as `cleaned` for parsed papers, because layout furniture
+was removed — never `verbatim`, which would overstate what is stored.
+
+## 9. Not yet built
+
+- **Mark schemes.** Both strategies are designed (§3): terminator-bounded blocks
+  for structured questions, table extraction for the MCQ section the terminator
+  does not cover.
+- **Examiner reports.** Per-document routing already works and is recorded; the
+  OCR path and handwriting-region discard are not built.
+- **Textbook.** 225 pages of OCR, with the specification-reference and equation
+  handling described in §5.
+- **Linking.** Question ↔ mark scheme ↔ examiner report by
+  `(paper_code, question_number)`, and textbook section ↔ specification
+  reference. The columns exist; the linking pass does not.
+
+## 10. What this predicts
 
 From 41 main questions, 3 mark schemes, 3 examiner reports and 225 textbook
 pages, a first ingestion should produce roughly:

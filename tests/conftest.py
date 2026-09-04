@@ -72,9 +72,15 @@ def database_url() -> str:
         conn.execute(f'DROP DATABASE IF EXISTS "{name}"')
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def empty_database_url() -> str:
-    """A database with nothing in it, for migration-from-empty tests."""
+    """
+    A database with nothing in it, for migration tests.
+
+    Function-scoped on purpose: two migration tests sharing one database would
+    each start from whatever the other left behind, and "migration from empty"
+    would stop meaning anything.
+    """
     admin = _admin_url()
     name = f"lumos_empty_{uuid.uuid4().hex[:10]}"
     with psycopg.connect(_with_database(admin, "postgres"), autocommit=True) as conn:
@@ -117,3 +123,62 @@ def client(database_url: str, monkeypatch):
     from apps.api.main import app
     with TestClient(app, raise_server_exceptions=False) as c:
         yield c
+
+
+@pytest.fixture
+def sandbox(conn):
+    """
+    A throwaway curriculum offering with one source document, for chunk tests.
+
+    Built inside the test transaction and rolled back afterwards, so chunk tests
+    never touch the seeded registry or each other.
+    """
+    import uuid as _uuid
+
+    tag = _uuid.uuid4().hex[:8]
+    doc_sha = _uuid.uuid4().hex + _uuid.uuid4().hex   # 64 hex characters
+    with conn.cursor() as cur:
+        cur.execute(
+            "INSERT INTO curricula (code, name) VALUES (%s, %s) RETURNING id",
+            (f"SBX_{tag.upper()}", f"Sandbox {tag}"))
+        curriculum_id = cur.fetchone()[0]
+        cur.execute(
+            "INSERT INTO subjects (curriculum_id, code, name_en) "
+            "VALUES (%s, 'SBX_SUBJECT', 'Sandbox subject') RETURNING id",
+            (curriculum_id,))
+        subject_id = cur.fetchone()[0]
+        cur.execute(
+            "INSERT INTO levels (curriculum_id, code, name) "
+            "VALUES (%s, 'SBX_LEVEL', 'Sandbox level') RETURNING id",
+            (curriculum_id,))
+        level_id = cur.fetchone()[0]
+        cur.execute(
+            """
+            INSERT INTO subject_offerings
+                (curriculum_id, subject_id, level_id, slug, languages,
+                 publication_status, display_note_en)
+            VALUES (%s, %s, %s, %s, ARRAY['en'], 'planned', 'sandbox')
+            RETURNING id
+            """,
+            (curriculum_id, subject_id, level_id, f"sandbox/{tag}"))
+        offering_id = cur.fetchone()[0]
+        cur.execute(
+            """
+            INSERT INTO source_documents
+                (offering_id, document_type, source_priority, title, filename,
+                 sha256, page_count, ingestion_route, paper_code, unit_number,
+                 session_year, session_series, language, is_private)
+            VALUES (%s, 'past_paper', 1, 'Sandbox paper', 'sandbox.pdf',
+                    %s, 12, 'text', 'SBX01', 1, 2024, 'May June', 'en', true)
+            RETURNING id
+            """,
+            (offering_id, doc_sha))
+        document_id = cur.fetchone()[0]
+
+    return {
+        "tag": tag,
+        "offering_id": str(offering_id),
+        "document_id": str(document_id),
+        "document_sha256": doc_sha,
+        "slug": f"sandbox/{tag}",
+    }

@@ -34,7 +34,7 @@ import argparse
 import json
 import os
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 import psycopg
@@ -112,9 +112,9 @@ SUBJECTS = [
 ]
 
 # Source hierarchy, most authoritative first (ADR-009).
-OFFICIAL_FIRST = ["syllabus", "mark_scheme", "examiner_report", "question_paper",
+OFFICIAL_FIRST = ["specification", "mark_scheme", "examiner_report", "past_paper",
                   "textbook", "revision_guide", "topic_notes"]
-TEXTBOOK_FIRST = ["textbook", "legacy_jsonl", "topic_notes", "revision_guide"]
+TEXTBOOK_FIRST = ["textbook", "legacy_corpus", "topic_notes", "revision_guide"]
 
 OFFERINGS = [
     {
@@ -390,14 +390,20 @@ def seed(conn: psycopg.Connection, audit: dict | None, catalog: dict | None) -> 
                 stats = audit_subjects.get(legacy_subject)
                 if not stats:
                     continue
-                for fname, finfo in sorted(audit_files.items()):
+                for audit_path, finfo in sorted(audit_files.items()):
                     if legacy_subject not in finfo.get("subjects", []):
                         continue
+                    # The auditor reports paths relative to the corpus parent
+                    # ("raw_data/ICT_C1.jsonl"). `filename` is the basename and
+                    # `relative_path` is that path as given — never one nested
+                    # inside the other.
+                    rel_path = PurePosixPath(audit_path.replace("\\", "/"))
+                    fname = rel_path.name
                     upsert(
                         cur, "source_documents",
-                        {"offering_id": offering_id, "relative_path": f"raw_data/{fname}"},
+                        {"offering_id": offering_id, "relative_path": str(rel_path)},
                         {
-                            "document_type": "legacy_jsonl",
+                            "document_type": "legacy_corpus",
                             "source_priority": 2,
                             "title": f"Legacy corpus — {fname}",
                             "filename": fname,
@@ -430,7 +436,7 @@ def _title_for(doc: dict[str, Any]) -> str:
         return "Pearson Edexcel International AS/A Level Physics Student Book 1"
     session = doc.get("session") or {}
     label = {
-        "question_paper": "Question paper",
+        "past_paper": "Question paper",
         "mark_scheme": "Mark scheme",
         "examiner_report": "Examiner report",
     }.get(doc.get("document_type", ""), doc.get("document_type", "Document"))

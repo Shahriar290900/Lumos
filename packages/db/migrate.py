@@ -10,6 +10,7 @@ what an external reviewer reads is what actually runs.
 Usage
 -----
     python packages/db/migrate.py up                 # apply all pending
+    python packages/db/migrate.py up --to 0001       # apply up to and including 0001
     python packages/db/migrate.py down               # revert the latest applied
     python packages/db/migrate.py down --to 0000     # revert everything
     python packages/db/migrate.py status
@@ -63,9 +64,12 @@ def applied_versions(conn: psycopg.Connection) -> list[str]:
         return [r[0] for r in cur.fetchall()]
 
 
-def cmd_up(conn: psycopg.Connection) -> int:
+def cmd_up(conn: psycopg.Connection, to: str | None = None) -> int:
+    """Apply pending migrations, optionally stopping at (and including) `to`."""
     done = set(applied_versions(conn))
     pending = [(v, up) for v, up, _ in discover() if v not in done]
+    if to is not None:
+        pending = [(v, up) for v, up in pending if v <= to]
     if not pending:
         print("nothing to apply — schema is up to date")
         return 0
@@ -117,7 +121,9 @@ def cmd_status(conn: psycopg.Connection) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="command", required=True)
-    sub.add_parser("up")
+    u = sub.add_parser("up")
+    u.add_argument("--to", default=None,
+                   help="stop after applying this migration, instead of applying all")
     d = sub.add_parser("down")
     d.add_argument("--to", default=None,
                    help="revert every migration with a version greater than this")
@@ -126,7 +132,7 @@ def main() -> int:
 
     with psycopg.connect(database_url()) as conn:
         if args.command == "up":
-            return cmd_up(conn)
+            return cmd_up(conn, args.to)
         if args.command == "down":
             return cmd_down(conn, args.to)
         return cmd_status(conn)

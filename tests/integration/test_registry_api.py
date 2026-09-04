@@ -32,7 +32,15 @@ from services.curriculum.registry import (  # noqa: E402
 # ─────────────────────────────────────────────────────────────────────────────
 
 def test_migration_from_empty_database_and_back(empty_database_url):
-    """up → schema exists; down → schema gone; up → schema exists again."""
+    """
+    0001 in isolation: up → schema exists; down → schema gone; up → back again.
+
+    Applied with `--to` so this stays a test of the registry migration alone.
+    Later migrations get their own reversal tests; asserting on the union here
+    would turn a precise test into one that has to be edited every time a
+    migration is added.
+    """
+    REGISTRY = "0001_curriculum_registry"
     env = {**os.environ, "DATABASE_URL": empty_database_url}
     migrate = [sys.executable, str(REPO_ROOT / "packages/db/migrate.py")]
 
@@ -54,7 +62,8 @@ def test_migration_from_empty_database_and_back(empty_database_url):
 
     assert relations() == (set(), set())
 
-    subprocess.run(migrate + ["up"], env=env, check=True, capture_output=True, text=True)
+    subprocess.run(migrate + ["up", "--to", REGISTRY], env=env, check=True,
+                   capture_output=True, text=True)
     assert relations() == (EXPECTED_TABLES, EXPECTED_VIEWS)
 
     with psycopg.connect(empty_database_url) as c, c.cursor() as cur:
@@ -65,7 +74,8 @@ def test_migration_from_empty_database_and_back(empty_database_url):
                    capture_output=True, text=True)
     assert relations() == (set(), set())       # reversible, leaves nothing behind
 
-    subprocess.run(migrate + ["up"], env=env, check=True, capture_output=True, text=True)
+    subprocess.run(migrate + ["up", "--to", REGISTRY], env=env, check=True,
+                   capture_output=True, text=True)
     assert relations() == (EXPECTED_TABLES, EXPECTED_VIEWS)   # re-appliable
 
 
@@ -148,7 +158,7 @@ def test_as_physics_offering_has_the_full_source_hierarchy(registry):
     o = registry.get_by_slug("edexcel-ial/physics/international-as")
     docs = registry.source_documents(o.offering_id, include_private=True)
     types = {d["document_type"] for d in docs}
-    assert {"question_paper", "mark_scheme", "examiner_report", "textbook"} <= types
+    assert {"past_paper", "mark_scheme", "examiner_report", "textbook"} <= types
 
     papers = {d["paper_code"] for d in docs if d["paper_code"]}
     assert papers == {"WPH11", "WPH12", "WPH13"}, "AS scope is units 1-3 only"

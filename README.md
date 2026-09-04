@@ -10,23 +10,24 @@ Successor to [Shikhbo-Local-App](https://github.com/Shahriar290900/Shikhbo-Local
 
 ## Status
 
-**Phase 0.5.** Reconnaissance complete; the curriculum registry is built and tested. No corpus is ingested yet, so **nothing is available and the API refuses every subject** — which is the correct state, not a defect.
+**Phase 0.5.** The curriculum registry and the canonical chunk model are built, tested and populated: **263 canonical chunks** — 180 normalised legacy records and 83 exam questions from the 2024 May/June Edexcel IAL Physics papers. Nothing is embedded or lexically indexed yet, so **nothing is retrievable, nothing is available, and the API refuses every subject** — the correct state, not a defect.
 
 - Start with [`RECONNAISSANCE_REPORT.md`](RECONNAISSANCE_REPORT.md) for the audit of the two legacy systems.
 - [`CURRICULUM_INVENTORY.md`](CURRICULUM_INVENTORY.md) is generated from the registry and says exactly what exists.
-- **Next goal:** LUMOS-004B — canonical chunk schema and legacy normalisation.
+- [`docs/CHUNK_SCHEMA.md`](docs/CHUNK_SCHEMA.md) describes the canonical model everything normalises into.
+- **Next goal:** LUMOS-004C — corpus cleaning and re-chunking.
 
 ## What the registry knows
 
-| Offering | Sources | Audited records | Indexed | Status |
-|---|---:|---:|---:|---|
-| Edexcel IAL Physics — International AS | 10 | — | 0 | in preparation (**demo scope**) |
-| Edexcel IAL Physics — A2 | 10 | 17 | 0 | held, not indexed |
-| NCTB ICT — SSC | 6 | 120 | 0 | in preparation |
-| NCTB English — SSC | 16 | 43 | 0 | in preparation |
-| NCTB Physics / Chemistry / Biology / Mathematics / Bangla — SSC | 0 | 0 | 0 | planned — no corpus |
+| Offering | Sources | Audited | Canonical | Indexed | Status |
+|---|---:|---:|---:|---:|---|
+| Edexcel IAL Physics — International AS | 10 | — | 41 | 0 | in preparation (**demo scope**) |
+| Edexcel IAL Physics — A2 | 10 | 17 | 59 | 0 | held, not published |
+| NCTB ICT — SSC | 6 | 120 | 120 | 0 | in preparation |
+| NCTB English — SSC | 16 | 43 | 43 | 0 | in preparation |
+| NCTB Physics / Chemistry / Biology / Mathematics / Bangla — SSC | 0 | 0 | 0 | 0 | planned — no corpus |
 
-"Audited records" is what an auditor counted in the source material; "Indexed" is what is actually in the store. Different things, different tables (ADR-014).
+Three counts, three meanings (ADR-014, ADR-020). **Audited** is what an auditor found in the source material; **canonical** is what normalisation produced; **indexed** is what is embedded and searchable. Only the last one can make a subject available.
 
 The demo corpus is Edexcel IAL **AS** Physics: units WPH11/12/13 for 2024 May/June — question papers, mark schemes and examiner reports — plus *Student Book 1*, whose Topics 1–4 cover the same AS content. 41 main questions, 210 marks. Those source PDFs are licensed and are never committed.
 
@@ -45,8 +46,13 @@ export DATABASE_URL=postgresql://...        # PostgreSQL 16 + pgvector
 
 python packages/db/migrate.py up
 python packages/db/seed/curriculum_seed.py
+
+# normalise the legacy corpora into canonical chunks (deterministic, idempotent)
+git clone https://github.com/Shahriar290900/Shikhbo-Local-App /tmp/legacy
+python scripts/normalise_corpus.py legacy --corpus-root /tmp/legacy/raw_data
+
 python scripts/check_registry_consistency.py
-pytest                                       # 47 tests, no credentials, no GPU
+pytest                                       # 120 tests, no credentials, no GPU
 
 uvicorn apps.api.main:app --reload
 curl localhost:8000/curriculum
@@ -93,8 +99,9 @@ Details in [`ARCHITECTURE.md`](ARCHITECTURE.md); decisions and their reasons in 
 | `evidence/` | Machine-readable audit output |
 | `scripts/audit_corpus.py` | Corpus auditor — stdlib only, reproducible |
 | `scripts/catalog_sources.py` | Checksums and routes private source PDFs; emits metadata only |
+| `scripts/normalise_corpus.py` | Runs the normalisation adapters; writes metadata-only reports |
 | `scripts/check_registry_consistency.py` | CI gate: the registry must agree with its evidence |
-| `packages/db/` · `services/curriculum/` · `apps/api/` | Migrations, registry domain logic, API |
+| `packages/db/` · `services/curriculum/` · `services/ingestion/` · `apps/api/` | Migrations, registry logic, normalisation adapters, API |
 
 ## Principles
 

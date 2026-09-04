@@ -42,6 +42,8 @@ Registered to `edexcel-ial/physics/a2`.
 
 Every SHA-256 checksum is in `evidence/source_catalog.json`. Ingestion routes were determined by probing each file, not assumed from its type (ADR-015).
 
+**Normalised so far:** the question papers. 83 main questions, 440 marks across all six units — 41 questions / 210 marks in the AS demo scope. Structure and counts in `evidence/past_paper_structure.json`; no question text appears in any committed file. Mark schemes, examiner reports and the textbook are catalogued and routed but not yet ingested (LUMOS-004C).
+
 ---
 
 ## Legacy corpora — public repositories
@@ -58,6 +60,8 @@ Every SHA-256 checksum is in `evidence/source_catalog.json`. Ingestion routes we
 | **Total** | **180** | | | | |
 
 `raw_data/` has one commit in its history (`f49cc6e`) — unchanged since it was added.
+
+All 180 are normalised into the canonical chunk model as `legacy_record` chunks, each keeping its original identifier and its complete original record. Counts reconcile exactly with the auditor; see `evidence/legacy_normalisation.json`. They are **not** re-chunked — LUMOS-004C.
 
 The Astrophysics chunks are registered to the A2 offering because specification area 5.6 (Astrophysics and Cosmology) sits in Unit 5, which is A2 content.
 
@@ -90,6 +94,10 @@ Derived chunk text is licensed material in another form. It is retrieval context
 
 ---
 
+## Document type vocabulary
+
+Migration 0002 canonicalised the names (ADR-019): `question_paper` → `past_paper`, `syllabus` → `specification`, `legacy_jsonl` → `legacy_corpus`. Mark schemes and examiner reports remain distinct types and are never collapsed into a generic document.
+
 ## Refreshing
 
 ```bash
@@ -100,6 +108,15 @@ python scripts/catalog_sources.py private_source_materials \
     --output evidence/source_catalog.json --quiet
 
 DATABASE_URL=... python packages/db/seed/curriculum_seed.py
+
+DATABASE_URL=... python scripts/normalise_corpus.py legacy \
+    --corpus-root <path>/Shikhbo-Local-App/raw_data \
+    --output evidence/legacy_normalisation.json
+
+DATABASE_URL=... python scripts/normalise_corpus.py papers \
+    --sources-root private_source_materials \
+    --output evidence/past_paper_structure.json
+
 DATABASE_URL=... python scripts/check_registry_consistency.py
 DATABASE_URL=... python scripts/generate_inventory.py --output CURRICULUM_INVENTORY.md
 ```
