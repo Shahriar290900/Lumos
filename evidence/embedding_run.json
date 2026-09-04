@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-09-04T14:08:09+00:00",
+  "provider": "huggingface",
+  "embedding_model": "BAAI/bge-m3",
+  "is_mock": false,
+  "chunks_embedded": 332,
+  "index_state": [
+    {
+      "slug": "edexcel-ial/physics/a2",
+      "canonical_chunks": 59,
+      "embedded_chunks": 59
+    },
+    {
+      "slug": "edexcel-ial/physics/international-as",
+      "canonical_chunks": 41,
+      "embedded_chunks": 41
+    },
+    {
+      "slug": "nctb/english/ssc",
+      "canonical_chunks": 109,
+      "embedded_chunks": 109
+    },
+    {
+      "slug": "nctb/ict/ssc",
+      "canonical_chunks": 164,
+      "embedded_chunks": 164
+    }
+  ],
+  "note": "Counts only. No source text appears in this file."
+}

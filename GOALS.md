@@ -24,11 +24,11 @@ A goal is complete only when its acceptance criteria are met **and** the evidenc
 - [x] **LUMOS-004F Model Gateway + mock provider + `gemma4:e4b`** — evidence: `services/models/`, 27 tests; embeddings and reranking verified live on Hugging Face, generation blocked on BLOCK-005
 
 ## Phase 1 — Product MVP
-- [!] LUMOS-005 Authentication + roles — *blocked: BLOCK-006, BLOCK-007*
+- [!] LUMOS-005 Authentication + roles — *BLOCK-006 open; BLOCK-007 has a draft policy (`docs/UNDER_18_POLICY.md`) awaiting legal review*
 - [~] LUMOS-006 Neon schema + migrations — *both migrations apply and reverse against the provisioned Neon project (PostgreSQL 18.6, pgvector 0.8.6, `ap-southeast-1`); no production branch yet*
 - [~] LUMOS-007 Curriculum ingestion MVP — *past-paper adapter done; mark schemes, examiner reports and the OCR textbook path remain*
-- [ ] LUMOS-008 Hybrid retrieval with RRF on pgvector + Postgres FTS
-- [ ] LUMOS-009 BGE reranking + source-priority policy
+- [x] **LUMOS-008 Hybrid retrieval with RRF on pgvector + Postgres FTS** — migration 0003, `services/rag/retrieval.py`, 14 tests; **373 chunks embedded with real BAAI/bge-m3**
+- [~] LUMOS-009 BGE reranking + source-priority policy — *cross-encoder reranking works live; the priority weight is unmeasured until LUMOS-004E*
 - [ ] LUMOS-010 Tutor API + SSE streaming
 - [ ] LUMOS-011 Citation + confidence validation
 - [ ] LUMOS-012 Student dashboard

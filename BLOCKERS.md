@@ -132,9 +132,19 @@ Legacy used bcrypt passwords + Google OAuth + email OTP over Gmail SMTP app pass
 
 ---
 
-## BLOCK-007 — Under-18 data policy not decided
+## BLOCK-007 — Under-18 data policy: DRAFTED, not reviewed
 
-**Severity:** High (legal/ethical) · **Status:** OPEN
+**Severity:** High (legal/ethical) · **Status:** PARTLY ADDRESSED (2026-09-04)
+
+**A draft exists** at `docs/UNDER_18_POLICY.md`, written so engineering has
+something to build against. It sets a minimum age of 13, lists what is collected
+and — more importantly — what is deliberately not, makes chat history opt-in and
+off by default, and commits to no assessment profile.
+
+**It is explicitly not sufficient for launch.** It has not been reviewed by a
+lawyer, has not been checked against Bangladeshi law, and implements parental
+*acknowledgement* rather than verified consent. The document says so in its own
+first line rather than leaving the reader to discover it.
 
 The target user is an SSC student — most are under 18. The whitepaper commits to "parental consent for under-18 accounts" and "no student assessment profiles". Neither is implemented, and no policy document exists.
 

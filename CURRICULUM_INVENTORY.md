@@ -14,13 +14,13 @@ Generated: 2026-09-04
 
 | Offering | Curriculum | Subject | Level | Status | Sources | Canonical | Indexed | Available |
 |---|---|---|---|---|---:|---:|---:|---|
-| `edexcel-ial/physics/international-as` | EDEXCEL_IAL | Physics | International AS | in preparation | 10 | 41 | 0 | no |
-| `edexcel-ial/physics/a2` | EDEXCEL_IAL | Physics | International A2 | planned — no corpus | 10 | 59 | 0 | no |
+| `edexcel-ial/physics/international-as` | EDEXCEL_IAL | Physics | International AS | in preparation | 10 | 41 | 41 | no |
+| `edexcel-ial/physics/a2` | EDEXCEL_IAL | Physics | International A2 | planned — no corpus | 10 | 59 | 59 | no |
 | `nctb/bangla/ssc` | NCTB | Bangla | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 | `nctb/biology/ssc` | NCTB | Biology | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 | `nctb/chemistry/ssc` | NCTB | Chemistry | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
-| `nctb/english/ssc` | NCTB | English | Secondary School Certificate | in preparation | 16 | 109 | 0 | no |
-| `nctb/ict/ssc` | NCTB | ICT | Secondary School Certificate | in preparation | 6 | 164 | 0 | no |
+| `nctb/english/ssc` | NCTB | English | Secondary School Certificate | in preparation | 16 | 109 | 109 | no |
+| `nctb/ict/ssc` | NCTB | ICT | Secondary School Certificate | in preparation | 6 | 164 | 164 | no |
 | `nctb/mathematics/ssc` | NCTB | Mathematics | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 | `nctb/physics/ssc` | NCTB | Physics | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 
@@ -32,13 +32,13 @@ Three counts, three different things (ADR-014, ADR-020): **audited** is what an 
 
 | Offering | Blocked by |
 |---|---|
-| `edexcel-ial/physics/international-as` | publication_status=in_preparation, indexing_status=sources_catalogued, evaluation_status=none, no_indexed_chunks |
-| `edexcel-ial/physics/a2` | publication_status=planned, indexing_status=sources_catalogued, evaluation_status=none, no_indexed_chunks |
+| `edexcel-ial/physics/international-as` | publication_status=in_preparation, evaluation_status=none |
+| `edexcel-ial/physics/a2` | publication_status=planned, evaluation_status=none |
 | `nctb/bangla/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
 | `nctb/biology/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
 | `nctb/chemistry/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
-| `nctb/english/ssc` | publication_status=in_preparation, indexing_status=normalising, evaluation_status=none, no_indexed_chunks, licence_status=unknown |
-| `nctb/ict/ssc` | publication_status=in_preparation, indexing_status=normalising, evaluation_status=none, no_indexed_chunks, licence_status=unknown |
+| `nctb/english/ssc` | publication_status=in_preparation, evaluation_status=none, licence_status=unknown |
+| `nctb/ict/ssc` | publication_status=in_preparation, evaluation_status=none, licence_status=unknown |
 | `nctb/mathematics/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
 | `nctb/physics/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
 

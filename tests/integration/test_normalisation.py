@@ -545,8 +545,17 @@ def test_canonical_chunk_migration_applies_and_reverses(empty_database_url):
     assert {"chunks", "normalisation_runs"} <= tables
     assert {"chunk_retrieval_context", "curriculum_availability"} <= views
 
-    # 0002 only: the registry must survive.
-    subprocess.run(migrate + ["down"], env=env, check=True, capture_output=True, text=True)
+    # Revert to 0001 explicitly rather than calling `down` once.
+    #
+    # A bare `down` reverts whichever migration is latest, so this test silently
+    # changed meaning the moment 0003 was added: it reverted retrieval and then
+    # asserted the chunks table was gone. Naming the target keeps the test about
+    # 0002 however many migrations follow it.
+    # The full version name, not the "0001" prefix: `--to` reverts everything
+    # strictly greater as a string, and "0001_curriculum_registry" > "0001", so
+    # the short form reverts the registry too.
+    subprocess.run(migrate + ["down", "--to", "0001_curriculum_registry"], env=env,
+                   check=True, capture_output=True, text=True)
     tables, views = relations()
     assert "chunks" not in tables and "normalisation_runs" not in tables
     assert "chunk_retrieval_context" not in views
