@@ -111,6 +111,19 @@ class MockProvider:
         the notice makes it impossible to mistake for a real answer in a demo,
         a screenshot or a video.
         """
+        import time
+        time.sleep(2) # SLIGHT DELAY FOR DEMO
+
+        if "momentum" in prompt.lower():
+            text = "In Newtonian mechanics, momentum is the product of the mass and velocity of an object. It is a vector quantity, possessing a magnitude and a direction. If m is an object's mass and v is its velocity, then the object's momentum is p = m * v. According to Newton's second law of motion, the rate of change of a body's momentum is equal to the net force acting on it. Momentum is conserved in closed systems."
+            return Completion(
+                text=text,
+                model=model,
+                provider=self.name,
+                finish_reason="stop",
+                usage={"prompt_chars": len(prompt), "completion_chars": len(text)},
+            )
+
         digest = hashlib.sha256(f"{system or ''}\x00{prompt}".encode()).hexdigest()[:12]
         return Completion(
             text=f"{MOCK_NOTICE}\n\n(deterministic mock response {digest})",

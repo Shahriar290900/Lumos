@@ -78,9 +78,14 @@ class Page:
 
 
 def render(page: Page) -> str:
-    nav = "".join(
-        f'<a href="{href}"{" aria-current=\"page\"" if href == page.path else ""}>{label}</a>'
-        for href, label in NAV)
+    # Built without a backslash inside the f-string expression: that is legal
+    # from Python 3.12 (PEP 701) and a SyntaxError on 3.11, which is what the
+    # Space image runs. It imported fine locally and killed the container.
+    def link(href: str, label: str) -> str:
+        current = ' aria-current="page"' if href == page.path else ""
+        return f'<a href="{href}"{current}>{label}</a>'
+
+    nav = "".join(link(href, label) for href, label in NAV)
     scripts = page.scripts
     if page.scene:
         # three.js is loaded only on the page that draws a scene. Every other

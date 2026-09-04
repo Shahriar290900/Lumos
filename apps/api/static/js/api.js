@@ -23,11 +23,11 @@ async function json(url, options) {
 }
 
 export const api = {
-  health: () => json("/health"),
-  curriculum: () => json("/curriculum"),
-  documents: (slug) => json(`/offerings/${slug}/documents`),
-  documentUrl: (id) => json(`/documents/${id}/url`),
-  ask: (query, slug) => json("/tutor/ask", {
+  health: () => json("/api/health"),
+  curriculum: () => json("/api/curriculum"),
+  documents: (slug) => json(`/api/offerings/${slug}/documents`),
+  documentUrl: (id) => json(`/api/documents/${id}/url`),
+  ask: (query, slug) => json("/api/tutor/ask", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, slug }),
   }),
