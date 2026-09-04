@@ -21,6 +21,7 @@ from typing import Any, Iterator
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, model_validator
 
 from pathlib import Path
@@ -302,6 +303,47 @@ def tutor_ask(
 # cannot show a subject as available unless the registry says so (ADR-011).
 
 _STATIC = Path(__file__).resolve().parent / "static"
+app.mount("/static", StaticFiles(directory=_STATIC), name="static")
+
+
+@app.get("/offerings/{offering_slug:path}/documents")
+def list_documents(offering_slug: str,
+                   registry: CurriculumRegistry = Depends(get_registry)) -> dict[str, Any]:
+    """
+    Documents this offering may show a student (ADR-026).
+
+    Often an empty list, and that is a correct answer. Only the exam papers are
+    servable; the textbook grounds answers and is never shown.
+    """
+    from services.delivery.documents import servable_documents
+    with _connection() as conn:
+        docs = servable_documents(conn, offering_slug)
+    return {"offering": offering_slug,
+            "documents": [d.as_dict() for d in docs],
+            "count": len(docs)}
+
+
+@app.get("/documents/{document_id}/url")
+def document_url(document_id: str) -> dict[str, Any]:
+    """
+    A short-lived URL for one PDF, if the registry permits it.
+
+    Presigned rather than public: a leaked presigned link expires, and a public
+    bucket URL cannot be withdrawn once shared.
+    """
+    from services.delivery.documents import (
+        DeliveryUnavailable, DocumentNotServable, presigned_url,
+    )
+    try:
+        with _connection() as conn:
+            url, document = presigned_url(conn, document_id)
+    except DocumentNotServable as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,
+                            detail={"error": "not_servable", "message": str(exc)})
+    except DeliveryUnavailable as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail={"error": "delivery_unconfigured", "message": str(exc)})
+    return {"url": url, "expires_in": 900, **document.as_dict()}
 
 
 @app.get("/", include_in_schema=False)

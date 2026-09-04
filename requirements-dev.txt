@@ -24,3 +24,6 @@ pdfplumber==0.11.4
 # the tesseract binary on PATH as well.
 pypdfium2==5.13.0
 pytesseract==0.3.13
+
+# R2 (S3 API) — presigned URLs for the exam PDFs the app serves (ADR-026).
+boto3==1.35.99
