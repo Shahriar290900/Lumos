@@ -1,7 +1,12 @@
-# Runtime only. No pytest, no pdfplumber, no boto3 — a Space image should carry
-# what serves requests and nothing else.
+# Runtime only — what serves requests, and nothing else. No pytest, no
+# pdfplumber, no OCR toolchain: those are ingestion and test dependencies and
+# would add hundreds of megabytes to an image that only answers questions.
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
 pydantic==2.10.4
 pydantic-settings==2.7.0
 psycopg[binary]==3.2.3
+
+# Presigned R2 URLs for the exam PDFs the app serves (ADR-026). Needed at
+# runtime, not just at ingest — the URL is minted per request so it can expire.
+boto3==1.35.99

@@ -264,7 +264,7 @@ def test_ambiguous_resolution_is_refused_rather_than_guessed(registry, conn):
 # ─────────────────────────────────────────────────────────────────────────────
 
 def test_health_reports_the_database(client):
-    r = client.get("/health")
+    r = client.get("/api/health")
     assert r.status_code == 200
     body = r.json()
     assert body["database"] == "ok"
@@ -272,7 +272,7 @@ def test_health_reports_the_database(client):
 
 
 def test_curriculum_listing_returns_availability_and_notes(client):
-    r = client.get("/curriculum")
+    r = client.get("/api/curriculum")
     assert r.status_code == 200
     body = r.json()
     assert body["counts"]["total"] == 9
@@ -288,18 +288,18 @@ def test_curriculum_listing_returns_availability_and_notes(client):
 
 
 def test_listing_never_leaks_licence_terms(client):
-    body = client.get("/curriculum").json()
+    body = client.get("/api/curriculum").json()
     for offering in body["offerings"]:
         assert "licence_status" not in offering
 
 
 def test_available_only_filter(client):
-    body = client.get("/curriculum", params={"available_only": True}).json()
+    body = client.get("/api/curriculum", params={"available_only": True}).json()
     assert body["offerings"] == []
 
 
 def test_offering_detail_includes_snapshots_with_provenance(client):
-    r = client.get("/curriculum/NCTB/ICT/SSC")
+    r = client.get("/api/curriculum/NCTB/ICT/SSC")
     assert r.status_code == 200
     body = r.json()
     assert body["slug"] == "nctb/ict/ssc"
@@ -310,12 +310,12 @@ def test_offering_detail_includes_snapshots_with_provenance(client):
 
 
 def test_offering_detail_404s_for_an_unknown_subject(client):
-    assert client.get("/curriculum/NCTB/ASTROLOGY/SSC").status_code == 404
+    assert client.get("/api/curriculum/NCTB/ASTROLOGY/SSC").status_code == 404
 
 
 def test_tutor_refuses_an_unavailable_subject_before_retrieval(client):
     """The বাংলা case, over HTTP. 409 with reasons — never an answer."""
-    r = client.post("/tutor/ask", json={
+    r = client.post("/api/tutor/ask", json={
         "query": "বাংলা ব্যাকরণে কারক কী?",
         "curriculum": "NCTB", "subject": "BANGLA", "level": "SSC", "language": "bn",
     })
@@ -331,10 +331,10 @@ def test_tutor_refuses_an_unavailable_subject_before_retrieval(client):
 
 
 def test_tutor_refuses_every_seeded_offering_while_nothing_is_indexed(client):
-    offerings = client.get("/curriculum").json()["offerings"]
+    offerings = client.get("/api/curriculum").json()["offerings"]
     assert offerings
     for o in offerings:
-        r = client.post("/tutor/ask", json={
+        r = client.post("/api/tutor/ask", json={
             "query": "test",
             "curriculum": o["curriculum_code"],
             "subject": o["subject_code"],
@@ -345,14 +345,14 @@ def test_tutor_refuses_every_seeded_offering_while_nothing_is_indexed(client):
 
 
 def test_tutor_404s_for_an_unknown_subject(client):
-    r = client.post("/tutor/ask", json={
+    r = client.post("/api/tutor/ask", json={
         "query": "test", "curriculum": "NCTB", "subject": "ASTROLOGY", "level": "SSC"})
     assert r.status_code == 404
     assert r.json()["detail"]["error"] == "unknown_offering"
 
 
 def test_tutor_rejects_a_malformed_request(client):
-    assert client.post("/tutor/ask", json={"query": "", "curriculum": "NCTB",
+    assert client.post("/api/tutor/ask", json={"query": "", "curriculum": "NCTB",
                                            "subject": "ICT", "level": "SSC"}).status_code == 422
 
 
@@ -370,11 +370,11 @@ def test_the_slug_the_listing_publishes_resolves_at_the_tutor_route(client):
     A 404 that contradicts the listing endpoint is a worse failure than a strict
     match is a benefit, so the resolver now treats `-` and `_` as one separator.
     """
-    offerings = client.get("/curriculum").json()["offerings"]
+    offerings = client.get("/api/curriculum").json()["offerings"]
     assert offerings
 
     for o in offerings:
-        r = client.post("/tutor/ask", json={"query": "test", "slug": o["slug"]})
+        r = client.post("/api/tutor/ask", json={"query": "test", "slug": o["slug"]})
         assert r.status_code != 404, (
             f"slug {o['slug']!r} is published by /curriculum but does not "
             f"resolve at /tutor/ask")
@@ -393,7 +393,7 @@ def test_identifier_matching_folds_case_and_separator_together(client):
     ]
     slugs = set()
     for curriculum, subject, level in forms:
-        r = client.post("/tutor/ask", json={
+        r = client.post("/api/tutor/ask", json={
             "query": "test", "curriculum": curriculum,
             "subject": subject, "level": level})
         assert r.status_code == 409, f"{curriculum}/{subject}/{level} → {r.status_code}"
@@ -410,7 +410,7 @@ def test_widening_the_match_did_not_make_unknown_subjects_resolve(client):
         ("nctb-fake", "ict", "ssc"),
         ("edexcel-ial", "physics", "international-gcse"),
     ]:
-        r = client.post("/tutor/ask", json={
+        r = client.post("/api/tutor/ask", json={
             "query": "test", "curriculum": curriculum,
             "subject": subject, "level": level})
         assert r.status_code == 404, f"{curriculum}/{subject}/{level} should not resolve"

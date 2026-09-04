@@ -20,12 +20,13 @@ from typing import Any, Iterator
 
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Query, status
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, model_validator
 
 from pathlib import Path
 
+from apps.api import pages
 from services.curriculum.registry import (
     CurriculumRegistry,
     OfferingNotFound,
@@ -111,7 +112,8 @@ class TutorRequest(BaseModel):
 # Routes
 # ─────────────────────────────────────────────────────────────────────────────
 
-@app.get("/health")
+@app.get("/api/health")
+@app.get("/health", include_in_schema=False)
 def health() -> dict[str, Any]:
     """
     Liveness plus a truthful readiness breakdown.
@@ -177,7 +179,7 @@ def health() -> dict[str, Any]:
     return out
 
 
-@app.get("/curriculum")
+@app.get("/api/curriculum")
 def list_curriculum(
     available_only: bool = Query(
         default=False,
@@ -204,7 +206,7 @@ def list_curriculum(
     }
 
 
-@app.get("/curriculum/{curriculum_code}/{subject_code}/{level_code}")
+@app.get("/api/curriculum/{curriculum_code}/{subject_code}/{level_code}")
 def get_offering(
     curriculum_code: str,
     subject_code: str,
@@ -227,7 +229,7 @@ def get_offering(
     return payload
 
 
-@app.post("/tutor/ask")
+@app.post("/api/tutor/ask")
 def tutor_ask(
     req: TutorRequest,
     registry: CurriculumRegistry = Depends(get_registry),
@@ -292,28 +294,13 @@ def tutor_ask(
     return JSONResponse(status_code=200, content=payload)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# The interface
-# ─────────────────────────────────────────────────────────────────────────────
-#
-# Served by the API rather than a separate front end, deliberately. A Hugging
-# Face Space is one container, and splitting the interface out would mean a
-# second deployment and a CORS boundary for no benefit at this stage. The page
-# is static: it reads /health and /curriculum and posts to /tutor/ask, so it
-# cannot show a subject as available unless the registry says so (ADR-011).
-
-_STATIC = Path(__file__).resolve().parent / "static"
-app.mount("/static", StaticFiles(directory=_STATIC), name="static")
-
-
-@app.get("/offerings/{offering_slug:path}/documents")
-def list_documents(offering_slug: str,
-                   registry: CurriculumRegistry = Depends(get_registry)) -> dict[str, Any]:
+@app.get("/api/offerings/{offering_slug:path}/documents")
+def list_documents(offering_slug: str) -> dict[str, Any]:
     """
     Documents this offering may show a student (ADR-026).
 
-    Often an empty list, and that is a correct answer. Only the exam papers are
-    servable; the textbook grounds answers and is never shown.
+    Often an empty list, and that is a correct answer: material that grounds an
+    answer is not automatically material a student may open.
     """
     from services.delivery.documents import servable_documents
     with _connection() as conn:
@@ -323,13 +310,13 @@ def list_documents(offering_slug: str,
             "count": len(docs)}
 
 
-@app.get("/documents/{document_id}/url")
+@app.get("/api/documents/{document_id}/url")
 def document_url(document_id: str) -> dict[str, Any]:
     """
     A short-lived URL for one PDF, if the registry permits it.
 
-    Presigned rather than public: a leaked presigned link expires, and a public
-    bucket URL cannot be withdrawn once shared.
+    Presigned rather than public: a leaked presigned link expires, while a
+    public bucket URL cannot be withdrawn once it has been shared.
     """
     from services.delivery.documents import (
         DeliveryUnavailable, DocumentNotServable, presigned_url,
@@ -346,6 +333,28 @@ def document_url(document_id: str) -> dict[str, Any]:
     return {"url": url, "expires_in": 900, **document.as_dict()}
 
 
-@app.get("/", include_in_schema=False)
-def home() -> FileResponse:
-    return FileResponse(_STATIC / "index.html")
+# ─────────────────────────────────────────────────────────────────────────────
+# The site
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Real routes, not hash fragments: each page can be bookmarked, shared, reloaded
+# and indexed. Served by the API rather than a separate front end because a
+# Hugging Face Space is one container, and splitting them would add a
+# deployment and a CORS boundary for no benefit at this stage.
+#
+# Every page renders complete without JavaScript; scripts then fill in what
+# needs the API. A failed CDN leaves a styled, readable page (ADR-005/019).
+
+_STATIC = Path(__file__).resolve().parent / "static"
+app.mount("/static", StaticFiles(directory=_STATIC), name="static")
+
+
+def _page_route(page: pages.Page) -> None:
+    async def handler() -> HTMLResponse:
+        return HTMLResponse(pages.render(page))
+    app.add_api_route(page.path, handler, methods=["GET"],
+                      include_in_schema=False, name=f"page{page.path}")
+
+
+for _page in pages.ALL:
+    _page_route(_page)
