@@ -50,7 +50,6 @@ _HEAD = """<!doctype html>
     <span><b>LUMOS</b><small>LEARNERS</small></span></a>
   <nav>{nav}</nav>
   <span class="grow"></span>
-  <span id="status">&mdash;</span>
 </header>
 """
 
