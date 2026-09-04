@@ -44,8 +44,8 @@ Verdicts: **PORT** (move the logic, change the storage) · **LIFT** (nearly as-i
 | BGE-Reranker-v2-M3 | `shikhbo-ai` | **LIFT** | Behind the gateway | `services/models/rerank.py` |
 | Direct `transformers` calls | `shikhbo-ai/app.py:54–160` | **RETIRE** | Violates ADR-003; becomes one gateway provider | `services/models/providers/` |
 | HF Space client | `web/scripts/hf_client.py` | **PORT** | Becomes the `huggingface` provider | `services/models/providers/huggingface.py` |
-| Gemini client | `web/scripts/gemini_client.py` | **PORT** | Becomes an optional provider; not a hardcoded fallback path | `services/models/providers/` |
-| Fallback-on-503 pattern | `hf_client.py` | **LIFT** | Becomes gateway policy, not per-call-site `try/except` | `services/models/gateway.py` |
+| Gemini client | `web/scripts/gemini_client.py` | **DO NOT PORT** | Superseded by the single-model policy. `gemma4:e4b` is the only generation model; a second provider serving a different model is the fallback path the policy exists to prevent | — |
+| Fallback-on-503 pattern | `hf_client.py` | **LIFT** | Becomes gateway policy, not per-call-site `try/except`. Retry and back off against **the same model**; never fall through to a different one. Exhausted retries surface as an error, not as an answer | `services/models/gateway.py` |
 | Ollama coupling | `retriever.py:19`, `generator.py:12` | **PORT** | Hardcoded `127.0.0.1:11434` → one gateway provider, for the offline target only | `services/models/providers/ollama.py` |
 | Mock provider | *absent* | **REBUILD** | Deterministic, credential-free. **Prerequisite for the whole test suite.** | `services/models/providers/mock.py` |
 

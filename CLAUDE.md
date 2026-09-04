@@ -32,6 +32,13 @@ The verified corpus is **180 records**: SSC English 43, SSC ICT 120, Edexcel IAL
 ## Retrieval
 Hybrid lexical + semantic. Metadata filter **before** ranking, at the SQL boundary. RRF at k=60 with the legacy language-aware weights as the measured baseline (ADR-007). Source priority carried as a feature through fusion and reranking (ADR-009). BGE reranking on the fused pool. Dependency-aware context assembly. Do not add Elasticsearch, Pinecone, Weaviate or a separate BM25 service without evaluation evidence.
 
+## Model policy — non-negotiable
+**`gemma4:e4b` is the only generation model Lumos uses.** `google/gemma-4-E4B-it` (Apache-2.0) on Hugging Face; `gemma4:e4b` on Ollama. No Qwen, no Gemini, no GPT, no fallback chain to a second generation model. If it is unavailable, fail loudly — never answer from something else. The legacy `Qwen2.5-VL-7B` / `gemma-4-31b-it` stack and the whitepaper §5.10 Qwen/DeepSeek stack are superseded; where those names appear in `RECONNAISSANCE_REPORT.md` they are a dated record of the legacy system, not a plan.
+
+Two exemptions, because a decoder LLM cannot do these jobs: `BAAI/bge-m3` (multilingual embeddings, 1024-dim) and `BAAI/bge-reranker-v2-m3` (cross-encoder reranking). Do not "simplify" them away. Vision is Phase 2 and uses gemma4:e4b's own multimodal capability.
+
+**Inference is always remote.** The development machine is a 2017 MacBook Air with no GPU and 8 GB RAM: a client and orchestrator, never an inference host. The gateway ships a deterministic mock provider so the suite runs with an empty `.env`, no credential and no GPU. Every test must pass with `AI_PROVIDER=mock`.
+
 ## AI trust
 - Curriculum, subject, class and syllabus filters precede semantic retrieval.
 - Every grounded answer's citations must resolve to chunks retrieved for that turn (ADR-010).

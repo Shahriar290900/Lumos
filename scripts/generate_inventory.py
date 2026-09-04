@@ -67,14 +67,41 @@ def fetch(conn: psycopg.Connection) -> dict[str, Any]:
             """)
         chunks = [dict(r) for r in cur.fetchall()]
 
+        # The most recent *batch* per (offering, adapter), summed.
+        #
+        # Two reasons this is not `DISTINCT ON ... ORDER BY started_at DESC`.
+        # First, the past-paper adapter records one run per document, and every
+        # run of a single invocation shares one `started_at` because `now()` is
+        # transaction-scoped — so picking "the latest" was a three-way tie broken
+        # arbitrarily, and reported one paper out of three. Second, ordering by
+        # `offering_id` ordered by a `gen_random_uuid()` value, so the row order
+        # of this table depended on which database instance generated it.
+        #
+        # Both made CURRICULUM_INVENTORY.md irreproducible across machines, which
+        # is precisely the claim this file exists to support. Grouping by the
+        # batch timestamp and ordering by slug is stable everywhere.
         cur.execute(
             """
-            SELECT DISTINCT ON (offering_id, adapter)
-                   o.slug, r.adapter, r.ingestion_version, r.source_records,
-                   r.chunks_created, r.chunks_updated, r.chunks_unchanged
+            WITH latest AS (
+                SELECT offering_id, adapter, max(started_at) AS started_at
+                FROM normalisation_runs
+                GROUP BY offering_id, adapter
+            )
+            SELECT o.slug, r.adapter,
+                   max(r.ingestion_version)      AS ingestion_version,
+                   count(*)                      AS documents,
+                   sum(r.source_records)         AS source_records,
+                   sum(r.chunks_created)         AS chunks_created,
+                   sum(r.chunks_updated)         AS chunks_updated,
+                   sum(r.chunks_unchanged)       AS chunks_unchanged
             FROM normalisation_runs r
+            JOIN latest l
+              ON l.offering_id = r.offering_id
+             AND l.adapter     = r.adapter
+             AND l.started_at  = r.started_at
             JOIN subject_offerings o ON o.id = r.offering_id
-            ORDER BY offering_id, adapter, r.started_at DESC
+            GROUP BY o.slug, r.adapter
+            ORDER BY o.slug, r.adapter
             """)
         runs = [dict(r) for r in cur.fetchall()]
 
@@ -213,14 +240,15 @@ def render(data: dict[str, Any], audit: dict[str, Any], catalog: dict[str, Any] 
     if data["runs"]:
         add("### Normalisation runs")
         add("")
-        add("| Offering | Adapter | Version | Source records | Created | Updated | Unchanged |")
-        add("|---|---|---|---:|---:|---:|---:|")
+        add("| Offering | Adapter | Version | Documents | Source records | Created | Updated | Unchanged |")
+        add("|---|---|---|---:|---:|---:|---:|---:|")
         for r in data["runs"]:
             add(f"| `{r['slug']}` | {r['adapter']} | {r['ingestion_version']} | "
-                f"{r['source_records']} | {r['chunks_created']} | {r['chunks_updated']} | "
-                f"{r['chunks_unchanged']} |")
+                f"{r['documents']} | {r['source_records']} | {r['chunks_created']} | "
+                f"{r['chunks_updated']} | {r['chunks_unchanged']} |")
         add("")
-        add("Latest run per adapter. A re-run over unchanged input reports only "
+        add("The most recent normalisation batch per adapter, summed across the "
+            "documents in that batch. A re-run over unchanged input reports only "
             "`unchanged`, which is what makes normalisation safe to repeat.")
         add("")
 
@@ -316,6 +344,16 @@ def main() -> int:
     if args.check:
         current = args.output.read_text(encoding="utf-8") if args.output.exists() else ""
         # The generated-on date changes daily and is not a drift signal.
+        #
+        # This compares the WHOLE file, and deliberately differs from the CI
+        # `inventory` job, which compares only the sections between "Offerings
+        # and availability" and "Registered source documents". That is not an
+        # oversight in either place: the licensed PDFs are not present in CI, so
+        # the source-catalogue section legitimately differs there, while locally
+        # the catalogue is present and the whole file must match. Do not "fix"
+        # one to match the other — narrowing this check would stop it noticing
+        # drift in the run and chunk tables, which is exactly where the
+        # reproducibility defect fixed in LUMOS-004B.1 lived.
         strip = lambda s: "\n".join(l for l in s.splitlines() if not l.startswith("Generated: "))
         if strip(current) != strip(text):
             print(f"FAIL: {args.output.name} is stale — regenerate it", file=sys.stderr)

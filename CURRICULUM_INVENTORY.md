@@ -78,15 +78,15 @@ These are **audited** counts of legacy source records, not indexed chunks. `inde
 
 ### Normalisation runs
 
-| Offering | Adapter | Version | Source records | Created | Updated | Unchanged |
-|---|---|---|---:|---:|---:|---:|
-| `edexcel-ial/physics/a2` | legacy_corpus | 004b.1 | 17 | 17 | 0 | 0 |
-| `edexcel-ial/physics/a2` | past_paper | 004b.1 | 4 | 4 | 0 | 0 |
-| `nctb/english/ssc` | legacy_corpus | 004b.1 | 43 | 43 | 0 | 0 |
-| `edexcel-ial/physics/international-as` | past_paper | 004b.1 | 18 | 18 | 0 | 0 |
-| `nctb/ict/ssc` | legacy_corpus | 004b.1 | 120 | 120 | 0 | 0 |
+| Offering | Adapter | Version | Documents | Source records | Created | Updated | Unchanged |
+|---|---|---|---:|---:|---:|---:|---:|
+| `edexcel-ial/physics/a2` | legacy_corpus | 004b.1 | 1 | 17 | 0 | 0 | 17 |
+| `edexcel-ial/physics/a2` | past_paper | 004b.1 | 3 | 42 | 42 | 0 | 0 |
+| `edexcel-ial/physics/international-as` | past_paper | 004b.1 | 3 | 41 | 41 | 0 | 0 |
+| `nctb/english/ssc` | legacy_corpus | 004b.1 | 1 | 43 | 0 | 0 | 43 |
+| `nctb/ict/ssc` | legacy_corpus | 004b.1 | 1 | 120 | 0 | 0 | 120 |
 
-Latest run per adapter. A re-run over unchanged input reports only `unchanged`, which is what makes normalisation safe to repeat.
+The most recent normalisation batch per adapter, summed across the documents in that batch. A re-run over unchanged input reports only `unchanged`, which is what makes normalisation safe to repeat.
 
 ## Registered source documents
 

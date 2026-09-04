@@ -9,18 +9,23 @@ A goal is complete only when its acceptance criteria are met **and** the evidenc
 - [ ] LUMOS-001 Repository bootstrap: monorepo layout, tooling, lint, typecheck
 - [ ] LUMOS-002 Design system + brand tokens (dark magical academy: deep navy/black, warm gold)
 - [ ] LUMOS-003 Agent operating system (`.claude/` skills, agents, hooks, state files)
-- [~] LUMOS-004 CI baseline + test harness — *`.github/workflows/ci.yml` and 47 tests exist and run with an empty `.env`; not yet executed on GitHub*
+- [x] **LUMOS-004 CI baseline + test harness** — evidence: `.github/workflows/ci.yml`, 124 tests, first GitHub Actions run green on `b722d17` (three jobs, every step)
 
 ## Phase 0.5 — Curriculum and data foundation
 - [x] **LUMOS-004A Curriculum registry + coverage gates** — evidence: `packages/db/migrations/0001_curriculum_registry.up.sql`, 47 passing tests, `scripts/check_registry_consistency.py`, generated `CURRICULUM_INVENTORY.md`
 - [x] **LUMOS-004B Canonical chunk schema + legacy normalisation adapter** — evidence: migration 0002, 263 canonical chunks, 120 passing tests, `evidence/legacy_normalisation.json`
-- [ ] **LUMOS-004C Corpus cleaning: Bangla repair, boundary repair, re-chunking** ← **NEXT GOAL**
+- [x] **LUMOS-004B.1 Bootstrap fixes and model policy** — evidence below
+- [ ] **LUMOS-004C Corpus cleaning: Bangla repair, boundary repair, re-chunking** ← **NEXT GOAL**, in three sub-goals (ADR-025)
+  - [ ] **LUMOS-004C.1** Legacy text repair: Bangla, English re-chunking, glyph and truncation repair
+  - [ ] **LUMOS-004C.2** Mark-scheme and examiner-report adapters, plus cross-document linking
+  - [ ] **LUMOS-004C.3** Textbook OCR, 225 pages
 - [ ] LUMOS-004D Licence and provenance registry
 - [!] LUMOS-004E Retrieval evaluation set per available corpus — *needs subject-teacher review*
+- [ ] **LUMOS-004F Model Gateway + mock provider + `gemma4:e4b`** — *registered here, not as 004D (ADR-024). Not blocked by BLOCK-005: the mock provider needs no credential*
 
 ## Phase 1 — Product MVP
 - [!] LUMOS-005 Authentication + roles — *blocked: BLOCK-006, BLOCK-007*
-- [~] LUMOS-006 Neon schema + migrations — *migration runner and first migration exist and are tested locally; deployment blocked by BLOCK-002*
+- [~] LUMOS-006 Neon schema + migrations — *both migrations apply and reverse against the provisioned Neon project (PostgreSQL 18.6, pgvector 0.8.6, `ap-southeast-1`); no production branch yet*
 - [~] LUMOS-007 Curriculum ingestion MVP — *past-paper adapter done; mark schemes, examiner reports and the OCR textbook path remain*
 - [ ] LUMOS-008 Hybrid retrieval with RRF on pgvector + Postgres FTS
 - [ ] LUMOS-009 BGE reranking + source-priority policy
@@ -97,6 +102,49 @@ Defects found and fixed along the way: the 004A seed wrote doubled legacy paths
 view that reads it; single-letter Roman numerals `(i)`/`(v)`/`(x)` were parsed as
 first-level sub-parts; and the legacy reconciliation counted every chunk in an
 offering rather than only its legacy records.
+
+---
+
+## LUMOS-004B.1 — Bootstrap fixes and model policy — COMPLETE (2026-09-04)
+
+Closing the gaps between the documented state and the real one, before 004C.
+
+| Criterion | Evidence |
+|---|---|
+| History restored and pushed | 4 commits on `github.com/Shahriar290900/Lumos`; the bundle tip was `b722d17`, one commit *above* the documented `302ebb4` |
+| `ci.yml` present | Was in the bundle at 8,205 bytes all along. The copy in `Claude outputs/` is a stale pre-004B version and was not used |
+| CI actually runs | First-ever Actions run green on `b722d17`: guard, tests, inventory — every step |
+| Licensed material still uncommittable | Hook enabled and committed `100755`; guard, `.gitignore` and CI job all pass with 19 PDFs on disk |
+| Model policy recorded | ADR-022; `.env.example`, `CONNECTORS.md`, `MIGRATION_MAP.md`, `BLOCKERS.md`, `ARCHITECTURE.md`, `CLAUDE.md` |
+| Superseded models removed from forward-looking docs | Qwen candidate lists gone; Gemini client is **do not port**; `RECONNAISSANCE_REPORT.md` deliberately untouched |
+| Database provisioned and verified | Neon `ap-southeast-1`, PostgreSQL 18.6, pgvector 0.8.6; full gate green end to end (ADR-023) |
+| Goal-numbering conflict resolved | ADR-024 — 004D stays the licence registry, gateway becomes 004F |
+| 004C split recorded | ADR-025 |
+| Inventory is reproducible | **Defect found and fixed** — see below; 4 new tests, 3 of which fail against the previous generator |
+| Full suite passes | 124 tests against Neon |
+
+**Reproducibility defect found in `scripts/generate_inventory.py`.** The
+normalisation-runs table was irreproducible in two independent ways, and the
+committed `CURRICULUM_INVENTORY.md` did not match a regeneration on a second
+machine. It ordered rows by `offering_id`, a `gen_random_uuid()` value, so row
+order depended on which database instance produced the file. And it selected the
+"latest" run per `(offering, adapter)` with `DISTINCT ON` ordered by
+`started_at`, but the past-paper adapter records one run per document and every
+run of one invocation shares a timestamp because `now()` is transaction-scoped —
+a three-way tie broken arbitrarily.
+
+The visible symptom was a wrong number in the document whose purpose is to state
+the right one: the AS offering reported **18** source records where it holds
+**41**, and the A2 offering **4** where it holds **42**. Both now report the full
+batch, summing to the documented 83. This matters beyond tidiness — BCOLBD scores
+20 points for a repository an external evaluator can clone and reproduce, and
+this file is the first thing such an evaluator would regenerate.
+
+**Deliberately not done:** the planned `TEST_ADMIN_DATABASE` indirection. The
+test harness was expected to need it for Neon and does not — this instance has a
+`postgres` maintenance database, permits `pg_terminate_backend`, and accepts
+`CREATE DATABASE` on both endpoints. All 120 pre-existing tests passed against
+Neon with no code change, so the variable would have been speculative.
 
 ---
 

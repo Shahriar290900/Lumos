@@ -32,9 +32,12 @@
 | Auth | missing `AUTH_SECRET` aborts startup (C.2.9 regression) | unit | Yes |
 | Streaming | SSE closes cleanly under timeout and under error | integration | Yes |
 | Database | migration from an empty database succeeds and reverses | integration | ✅ |
+| Reproducibility | `CURRICULUM_INVENTORY.md` row order does not depend on random UUIDs | integration | ✅ |
+| Reproducibility | a multi-document normalisation batch is summed, not sampled on a timestamp tie | integration | ✅ |
+| Reproducibility | the generator returns identical rows on repeated calls | integration | ✅ |
 | Database | expected indexes exist; the metadata-filter query plan is sane | integration | partial |
 | Model gateway | provider swap requires no product-code change | unit | Yes |
-| Model gateway | provider failure falls back per policy | integration | Yes |
+| Model gateway | provider failure retries the **same** model, then raises — never answers from another (ADR-022) | integration | Yes |
 | Model gateway | full suite passes with `AI_PROVIDER=mock` and an empty `.env` | CI | ✅ |
 | Security | no secret appears in any client bundle | build-time | Yes |
 | Security | no licensed source material or oversized file is tracked in git | CI | ✅ |

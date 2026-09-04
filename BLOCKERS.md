@@ -53,17 +53,22 @@ The whitepaper is a filed competition document that describes a corpus spanning 
 
 ---
 
-## BLOCK-002 — Neon project not provisioned
+## BLOCK-002 — Neon project: mostly resolved
 
-**Severity:** High · **Status:** OPEN
+**Severity:** Low · **Status:** PARTLY RESOLVED (2026-09-04) · **Owner:** Hameem
 
-No Neon project, no `DATABASE_URL`, no pgvector instance. Needed for the curriculum registry, migrations and all retrieval work.
+**Resolved.** A Neon project exists in `ap-southeast-1` — the region this blocker asked us to evaluate for Bangladesh latency — running **PostgreSQL 18.6 with pgvector 0.8.6**. It is now the development database. The full verification gate passes against it end to end: migrations up and down from empty, seed, both normalisation adapters, idempotency, the consistency gate, and 120 tests.
 
-**Needed:** a Neon project (region choice matters for Bangladesh latency — evaluate `ap-southeast-1` against the alternatives), with pgvector enabled and a development branch.
+Migrations and seed proved provider-agnostic exactly as predicted. **No application or test code needed changing** — including the test harness, which creates and drops throwaway databases per session. That was expected to break, and did not: this project's Neon instance does have a `postgres` maintenance database, `pg_terminate_backend` is permitted for the owner role, and `CREATE DATABASE` works over both the pooled and direct endpoints.
 
-**Update 2026-09-04:** LUMOS-004A was built and tested against a local PostgreSQL 16 + pgvector 0.6.0 instance, so this blocks deployment only, not development. The migration and seed are provider-agnostic and will apply to Neon unchanged.
+**Measured cost.** The suite runs in **93 s** against Neon versus **3.9 s** against CI's local container — roughly 24× slower, entirely network round trips to Singapore. Acceptable for a local loop; CI remains the fast gate.
 
-**Blocks:** LUMOS-006, deployment of LUMOS-004A.
+**Still open.**
+
+- No production branch, no separate staging database. The development database is the only one.
+- The committed `.env.example` documents `DIRECT_DATABASE_URL`; migrations and the test harness must use the **unpooled** host (no `-pooler`), which is what is configured locally.
+
+**Blocks:** nothing currently. LUMOS-006 is unblocked for development.
 
 ---
 
@@ -89,22 +94,27 @@ No Render service for the FastAPI application or the ingestion worker.
 
 ---
 
-## BLOCK-005 — Model serving decision and budget ceiling
+## BLOCK-005 — Model serving: partly decided
 
-**Severity:** High · **Status:** OPEN
+**Severity:** High · **Status:** PARTLY DECIDED (2026-09-04) · **Owner:** Hameem
 
-The Model Gateway needs at least one real provider before any generation work can be evaluated. The development machine (2017 MacBook Air) cannot host inference.
+**Decided.**
 
-**Needed:**
+- **Model: `gemma4:e4b`, and only `gemma4:e4b`.** `google/gemma-4-E4B-it` (Apache-2.0) on Hugging Face; `gemma4:e4b` as the Ollama tag. No Qwen, no Gemini, no GPT, and no fallback chain to a second generation model. An unavailable model fails loudly rather than answering from something else. The whitepaper's Qwen/DeepSeek stack (§5.10) is superseded.
+- **Hosting: remote, always.** The development machine (2017 MacBook Air, no GPU, 8 GB RAM) is a client and an orchestrator, never an inference host.
+- **Exemptions, deliberate and confirmed:** `BAAI/bge-m3` for embeddings and `BAAI/bge-reranker-v2-m3` for reranking. A decoder LLM has no embedding endpoint, and reranking scores a query–document pair. These are the two jobs `gemma4:e4b` cannot do, not a loophole in the policy.
+- **Vision** is Phase 2 and will use `gemma4:e4b`'s own multimodal capability, not a separate vision model.
 
-- Provider choice for development: HF Inference Endpoint vs. HF GPU Space.
-- Model choice. Current-generation candidates verified to exist on the Hub: `Qwen/Qwen3.5-4B` (Apache-2.0), `google/gemma-4-E4B-it` (Apache-2.0). The whitepaper's stack (Qwen2.5-7B, Qwen2-VL-7B, Gemma-2-2B) is a generation behind. `BAAI/bge-m3` and `BAAI/bge-reranker-v2-m3` remain correct and should not change.
+**Still open.**
+
+- The endpoint itself. `HF_TOKEN` is held; no Inference Endpoint or GPU Space exists yet, so no generation has been run.
+- **The exact Ollama tag is unverified.** `ollama show gemma4:e4b` has not been run — Ollama is not installed on the development machine. Whatever it resolves to must be recorded in `CONNECTORS.md` before a provider is wired.
 - **A monthly budget ceiling and a documented shutdown procedure.** GPU endpoints bill while running; an endpoint left up over a weekend is the most likely way this project overspends.
 - Whether the earlier `shahriarhameem/shikhbo-ai` HF Space is being retired or reused.
 
-**Note:** the mock provider is being built regardless and unblocks all development and CI without any credential.
+**Note:** the mock provider is built regardless and unblocks all development and CI without any credential.
 
-**Blocks:** LUMOS-010 evaluation, LUMOS-020.
+**Blocks:** LUMOS-010 evaluation, LUMOS-020. Does **not** block LUMOS-004F, which ships the gateway and the mock provider.
 
 ---
 

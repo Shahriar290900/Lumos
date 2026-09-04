@@ -47,9 +47,11 @@ flowchart LR
 | Web | TanStack Start, React, TypeScript, Tailwind, selective shadcn/ui, Motion, R3F/Drei | Typed routes and server functions, SSR, the student and teacher experience |
 | API | FastAPI (Python) | Auth, orchestration, SSE streaming, typed request/response contracts, background job dispatch |
 | Domain services | Python modules behind the API | Curriculum registry, RAG orchestration, practice, ingestion |
-| Data | Neon PostgreSQL 16 + pgvector | Relational truth, vectors and full-text search in **one** store |
+| Data | Neon PostgreSQL 18 + pgvector | Relational truth, vectors and full-text search in **one** store |
 | Objects | Cloudflare R2 | Curriculum page images, 3D/video assets, exports, uploads |
 | Inference | Model Gateway → HF / Render GPU / mock / Ollama | All model access, server-side only |
+| Generation | `gemma4:e4b`, remote | The only generation model (see below) |
+| Embedding / rerank | `BAAI/bge-m3`, `BAAI/bge-reranker-v2-m3` | Multilingual retrieval; the two jobs a decoder model cannot do |
 | Observability | Structured logs, Sentry, AI evaluation logging | Errors, performance, retrieval quality over time |
 
 ## Architecture rules
@@ -60,6 +62,11 @@ flowchart LR
 4. **Curriculum isolation precedes ranking.** Curriculum / syllabus version / subject / level filters are applied at the SQL boundary, before any similarity computation.
 5. **3D is progressive enhancement.** Core navigation and the tutor work without WebGL, and honour `prefers-reduced-motion`.
 6. **Availability is data, not markup.** A subject is available only when the curriculum registry says so.
+7. **One generation model.** `gemma4:e4b` — `google/gemma-4-E4B-it` on Hugging Face, `gemma4:e4b` on Ollama — reached through the gateway over a remote endpoint. There is no second generation model and no fallback chain to one. When it is unavailable the gateway raises; it does not quietly answer from something else, because an answer from an unevaluated model is indistinguishable to a student from an evaluated one. Retry and back off against the same model, then surface the failure.
+
+   `BAAI/bge-m3` and `BAAI/bge-reranker-v2-m3` are exempt and are not an exception to the rule: a generation model exposes no embedding endpoint, and reranking scores a query–document *pair*, which a decoder scoring loop would do slowly, non-deterministically and without evaluation. Vision is Phase 2 and will use `gemma4:e4b`'s own multimodal capability.
+
+   Inference never runs on the development machine (2017 MacBook Air, no GPU). The gateway always ships a deterministic mock provider, which is what lets the whole suite pass with an empty `.env`, no credential and no GPU.
 
 ## Retrieval path
 
