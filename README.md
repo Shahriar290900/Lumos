@@ -10,29 +10,51 @@ Successor to [Shikhbo-Local-App](https://github.com/Shahriar290900/Shikhbo-Local
 
 ## Status
 
-**Reconnaissance complete. No product code yet.**
+**Phase 0.5.** Reconnaissance complete; the curriculum registry is built and tested. No corpus is ingested yet, so **nothing is available and the API refuses every subject** — which is the correct state, not a defect.
 
-This repository currently contains the audit of the two legacy systems, the corrected curriculum inventory, the target architecture, the migration plan, and the goal register. Start with **[`RECONNAISSANCE_REPORT.md`](RECONNAISSANCE_REPORT.md)**.
+- Start with [`RECONNAISSANCE_REPORT.md`](RECONNAISSANCE_REPORT.md) for the audit of the two legacy systems.
+- [`CURRICULUM_INVENTORY.md`](CURRICULUM_INVENTORY.md) is generated from the registry and says exactly what exists.
+- **Next goal:** LUMOS-004B — canonical chunk schema and legacy normalisation.
 
-**Next goal:** LUMOS-004A — Curriculum Registry + Coverage Gates.
+## What the registry knows
 
-## Verified corpus
+| Offering | Sources | Audited records | Indexed | Status |
+|---|---:|---:|---:|---|
+| Edexcel IAL Physics — International AS | 10 | — | 0 | in preparation (**demo scope**) |
+| Edexcel IAL Physics — A2 | 10 | 17 | 0 | held, not indexed |
+| NCTB ICT — SSC | 6 | 120 | 0 | in preparation |
+| NCTB English — SSC | 16 | 43 | 0 | in preparation |
+| NCTB Physics / Chemistry / Biology / Mathematics / Bangla — SSC | 0 | 0 | 0 | planned — no corpus |
 
-| Corpus | Records | Curriculum | Level |
-|---|---:|---|---|
-| English — *English For Today*, Units 1–16 | 43 | NCTB | SSC |
-| ICT — Chapters 1–6 (Bangla) | 120 | NCTB | SSC |
-| Physics — Astrophysics & Cosmology, spec 5.6 | 17 | Edexcel IAL | A-level |
-| **Total** | **180** | | |
+"Audited records" is what an auditor counted in the source material; "Indexed" is what is actually in the store. Different things, different tables (ADR-014).
 
-No corpus is published. All three require normalisation, cleaning, re-chunking and evaluation first. Chemistry, Biology, Mathematics, Bangla and past papers are **not present** — see [`COVERAGE_MATRIX.md`](COVERAGE_MATRIX.md).
+The demo corpus is Edexcel IAL **AS** Physics: units WPH11/12/13 for 2024 May/June — question papers, mark schemes and examiner reports — plus *Student Book 1*, whose Topics 1–4 cover the same AS content. 41 main questions, 210 marks. Those source PDFs are licensed and are never committed.
 
-Reproduce the audit with no dependencies:
+Reproduce the corpus audit with no dependencies at all:
 
 ```bash
 git clone https://github.com/Shahriar290900/Shikhbo-Local-App
-python scripts/audit_corpus.py Shikhbo-Local-App/raw_data
+python scripts/audit_corpus.py Shikhbo-Local-App/raw_data     # → 180 records
 ```
+
+## Running it
+
+```bash
+pip install -r requirements-dev.txt
+export DATABASE_URL=postgresql://...        # PostgreSQL 16 + pgvector
+
+python packages/db/migrate.py up
+python packages/db/seed/curriculum_seed.py
+python scripts/check_registry_consistency.py
+pytest                                       # 47 tests, no credentials, no GPU
+
+uvicorn apps.api.main:app --reload
+curl localhost:8000/curriculum
+```
+
+The whole suite runs with an empty `.env` and `AI_PROVIDER=mock`. If a test ever needs a GPU or an API key, that test is wrong.
+
+**Before your first commit:** `git config core.hooksPath .githooks` — the hook refuses licensed source material, PDFs outside `docs/`, files over 10 MB, and credential patterns.
 
 ## Architecture
 
@@ -61,14 +83,18 @@ Details in [`ARCHITECTURE.md`](ARCHITECTURE.md); decisions and their reasons in 
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Target architecture and rules |
 | [`DECISIONS.md`](DECISIONS.md) | ADRs |
 | [`MIGRATION_MAP.md`](MIGRATION_MAP.md) | What is ported, lifted, rebuilt, retired |
-| [`CURRICULUM_INVENTORY.md`](CURRICULUM_INVENTORY.md) | Verified corpus, per file |
+| [`CURRICULUM_INVENTORY.md`](CURRICULUM_INVENTORY.md) | **Generated** from the registry — what exists, per offering |
+| [`docs/INGESTION_DESIGN.md`](docs/INGESTION_DESIGN.md) | How the Edexcel sources are actually structured, and how to ingest them |
 | [`COVERAGE_MATRIX.md`](COVERAGE_MATRIX.md) | What is available, and the gates |
 | [`CHUNKED_DATA_AUDIT.md`](CHUNKED_DATA_AUDIT.md) | Corpus quality findings |
 | [`TEST_MATRIX.md`](TEST_MATRIX.md) | What must be tested |
 | [`CONNECTORS.md`](CONNECTORS.md) | External services and their status |
 | [`CLAUDE.md`](CLAUDE.md) | Engineering operating contract |
 | `evidence/` | Machine-readable audit output |
-| `scripts/audit_corpus.py` | The audit tool — stdlib only, reproducible |
+| `scripts/audit_corpus.py` | Corpus auditor — stdlib only, reproducible |
+| `scripts/catalog_sources.py` | Checksums and routes private source PDFs; emits metadata only |
+| `scripts/check_registry_consistency.py` | CI gate: the registry must agree with its evidence |
+| `packages/db/` · `services/curriculum/` · `apps/api/` | Migrations, registry domain logic, API |
 
 ## Principles
 

@@ -1,0 +1,213 @@
+"""
+apps.api.main — Lumos API.
+
+At this goal the API exposes the curriculum registry and one guarded stub of the
+tutor route. The stub is here on purpose: LUMOS-004A's acceptance criterion is
+that an unavailable subject is refused *before retrieval*, and the only way to
+demonstrate that is to have the route that would retrieve.
+
+It returns 501 once the gate passes, because retrieval does not exist yet
+(LUMOS-008). It never returns an answer, mock or otherwise — a route that
+fabricates a tutoring response to look finished is exactly the failure this
+project is built to avoid.
+"""
+
+from __future__ import annotations
+
+import os
+from contextlib import contextmanager
+from typing import Any, Iterator
+
+import psycopg
+from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+
+from services.curriculum.registry import (
+    CurriculumRegistry,
+    OfferingNotFound,
+    OfferingUnavailable,
+    offerings_to_public_dicts,
+)
+
+app = FastAPI(
+    title="Lumos API",
+    version="0.1.0",
+    description=(
+        "Curriculum-grounded tutoring for Bangladeshi students. "
+        "Subject availability is served from the curriculum registry; a subject "
+        "the registry does not mark available cannot be queried."
+    ),
+)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Database
+# ─────────────────────────────────────────────────────────────────────────────
+
+@contextmanager
+def _connection() -> Iterator[psycopg.Connection]:
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        # Fail closed and say so plainly (ADR-012). Never guess a connection.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="DATABASE_URL is not configured",
+        )
+    with psycopg.connect(url) as conn:
+        yield conn
+
+
+def get_registry() -> Iterator[CurriculumRegistry]:
+    with _connection() as conn:
+        yield CurriculumRegistry(conn)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Schemas
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TutorRequest(BaseModel):
+    query: str = Field(min_length=1, max_length=4000)
+    curriculum: str = Field(min_length=1, max_length=32)
+    subject: str = Field(min_length=1, max_length=32)
+    level: str = Field(min_length=1, max_length=32)
+    syllabus_version: str | None = Field(default=None, max_length=64)
+    language: str = Field(default="en", pattern="^[a-z]{2}$")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Routes
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.get("/health")
+def health() -> dict[str, Any]:
+    """
+    Liveness plus a truthful readiness breakdown.
+
+    Reports which subsystems are actually up rather than a single green light,
+    so a half-loaded service cannot look healthy.
+    """
+    out: dict[str, Any] = {"status": "ok", "version": app.version}
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        out["database"] = "not_configured"
+        out["status"] = "degraded"
+        return out
+    try:
+        with psycopg.connect(url, connect_timeout=5) as conn, conn.cursor() as cur:
+            cur.execute("SELECT count(*) FROM curriculum_availability WHERE is_available")
+            out["database"] = "ok"
+            out["available_offerings"] = cur.fetchone()[0]
+    except Exception as exc:  # noqa: BLE001 - report, do not crash the probe
+        out["database"] = "unreachable"
+        out["database_error"] = f"{type(exc).__name__}"
+        out["status"] = "degraded"
+    return out
+
+
+@app.get("/curriculum")
+def list_curriculum(
+    available_only: bool = Query(
+        default=False,
+        description="Return only offerings a student may actually query.",
+    ),
+    registry: CurriculumRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """
+    The subject list.
+
+    This is the front end's only source of availability. Offerings that are not
+    available are still returned — with `is_available: false`, `blocked_reasons`,
+    and the registry's own `display_note_en` / `display_note_bn` — so the UI can
+    render an honest "coming soon" or "in preparation" state instead of either
+    hiding the roadmap or implying a subject works.
+    """
+    offerings = registry.available_offerings() if available_only else registry.list_offerings()
+    return {
+        "offerings": offerings_to_public_dicts(offerings),
+        "counts": {
+            "total": len(offerings),
+            "available": sum(1 for o in offerings if o.is_available),
+        },
+    }
+
+
+@app.get("/curriculum/{curriculum_code}/{subject_code}/{level_code}")
+def get_offering(
+    curriculum_code: str,
+    subject_code: str,
+    level_code: str,
+    syllabus_version: str | None = Query(default=None),
+    registry: CurriculumRegistry = Depends(get_registry),
+) -> dict[str, Any]:
+    """One offering, with its non-private source documents and audited counts."""
+    try:
+        offering = registry.resolve(
+            curriculum=curriculum_code, subject=subject_code,
+            level=level_code, syllabus_version=syllabus_version,
+        )
+    except OfferingNotFound as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+
+    payload = offerings_to_public_dicts([offering])[0]
+    payload["source_documents"] = registry.source_documents(offering.offering_id)
+    payload["corpus_snapshots"] = registry.corpus_snapshots(offering.offering_id)
+    return payload
+
+
+@app.post("/tutor/ask")
+def tutor_ask(
+    req: TutorRequest,
+    registry: CurriculumRegistry = Depends(get_registry),
+) -> JSONResponse:
+    """
+    The coverage gate, in the position that matters.
+
+    The registry check runs first. Nothing downstream — no retrieval, no
+    embedding, no model call — happens for an offering the registry has not
+    marked available.
+    """
+    try:
+        offering = registry.require_available(
+            curriculum=req.curriculum, subject=req.subject,
+            level=req.level, syllabus_version=req.syllabus_version,
+        )
+    except OfferingNotFound as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={"error": "unknown_offering", "message": str(exc)},
+        )
+    except OfferingUnavailable as exc:
+        # 409, not 403: the request is well-formed and the caller is permitted —
+        # the corpus simply is not ready. The body carries the reasons and the
+        # student-facing copy so the client never has to invent an explanation.
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "error": "subject_unavailable",
+                "slug": exc.slug,
+                "publication_status": exc.publication_status,
+                "blocked_reasons": list(exc.reasons),
+                "message_en": exc.display_note_en
+                or "This subject is not available yet.",
+                "message_bn": exc.display_note_bn,
+            },
+        )
+
+    # Gate passed. Retrieval is LUMOS-008 and does not exist, so say so.
+    return JSONResponse(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        content={
+            "error": "retrieval_not_implemented",
+            "message": (
+                "The coverage gate passed for this offering, but hybrid retrieval "
+                "is not implemented yet (LUMOS-008)."
+            ),
+            "offering": {
+                "slug": offering.slug,
+                "indexed_chunk_count": offering.indexed_chunk_count,
+                "source_priority_policy": list(offering.source_priority_policy),
+            },
+        },
+    )

@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# The whole suite runs with AI_PROVIDER=mock and no model credential of any kind.
+# If a test ever needs a GPU or an API key, that test is wrong.
+env:
+  AI_PROVIDER: mock
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  guard:
+    name: Repository guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: No licensed source material is tracked
+        run: |
+          if git ls-files | grep -E '(^|/)private_source_materials/'; then
+            echo "::error::licensed source material is tracked in git"
+            exit 1
+          fi
+          if git ls-files '*.pdf' | grep -v '^docs/'; then
+            echo "::error::a PDF outside docs/ is tracked in git"
+            exit 1
+          fi
+          echo "no licensed material tracked"
+
+      - name: No file over 10 MB is tracked
+        run: |
+          large=$(git ls-files -z | xargs -0 -I{} sh -c 'test -f "{}" && \
+            [ "$(wc -c < "{}")" -gt 10485760 ] && echo "{}"' || true)
+          if [ -n "$large" ]; then
+            echo "::error::files over 10 MB are tracked:"; echo "$large"; exit 1
+          fi
+          echo "no oversized files tracked"
+
+      - name: No secrets are tracked
+        run: |
+          if git ls-files -z | xargs -0 grep -lIE \
+            '(sk-[A-Za-z0-9]{20,}|hf_[A-Za-z0-9]{30,}|AIza[A-Za-z0-9_-]{30,}|postgres(ql)?://[^[:space:]]*:[^[:space:]]*@)' \
+            2>/dev/null | grep -v '^\.env\.example$' | grep -v '^\.githooks/' ; then
+            echo "::error::possible credential in a tracked file"; exit 1
+          fi
+          echo "no credentials found"
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: lumos
+          POSTGRES_DB: lumos_ci
+          # Trust auth on a throwaway service container, so no credential-shaped
+          # string ever appears in this file or in the job log.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://lumos@localhost:5432/lumos_ci
+      TEST_DATABASE_URL: postgresql://lumos@localhost:5432/lumos_ci
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Corpus audit reproduces the committed evidence
+        run: |
+          # The legacy corpora live in the reference repository, not here.
+          git clone --depth 1 https://github.com/Shahriar290900/Shikhbo-Local-App /tmp/legacy
+          python scripts/audit_corpus.py /tmp/legacy/raw_data \
+            --output /tmp/audit.json --quiet
+          python - <<'PY'
+          import json
+          fresh = json.load(open("/tmp/audit.json"))
+          committed = json.load(open("evidence/curriculum_audit_local.json"))
+          for key in ("total_records", "jsonl_files", "unique_content_blocks"):
+              assert fresh[key] == committed[key], (
+                  f"{key}: audit now reports {fresh[key]}, "
+                  f"evidence/curriculum_audit_local.json says {committed[key]}")
+          for subject, stats in committed["subjects"].items():
+              assert fresh["subjects"][subject]["records"] == stats["records"], subject
+          print(f"corpus audit reproduces: {fresh['total_records']} records")
+          PY
+
+      - name: Migrate
+        run: python packages/db/migrate.py up
+
+      - name: Seed the registry
+        # No --catalog: the licensed PDFs are not present in CI, and the seed
+        # must work without them.
+        run: python packages/db/seed/curriculum_seed.py --audit evidence/curriculum_audit_local.json
+
+      - name: Registry agrees with its evidence
+        run: python scripts/check_registry_consistency.py --audit evidence/curriculum_audit_local.json
+
+      - name: Tests
+        run: pytest -v
+
+      - name: Migration reverses cleanly
+        run: |
+          python packages/db/migrate.py down --to 0000
+          python packages/db/migrate.py status
+
+  inventory:
+    name: Generated inventory is current
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: lumos
+          POSTGRES_DB: lumos_inv
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://lumos@localhost:5432/lumos_inv
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements-dev.txt
+      - run: python packages/db/migrate.py up
+      - run: python packages/db/seed/curriculum_seed.py --audit evidence/curriculum_audit_local.json
+      - name: CURRICULUM_INVENTORY.md matches the registry
+        # Without the source catalogue the PDF section differs, so compare only
+        # the registry-derived sections.
+        run: |
+          python scripts/generate_inventory.py --output /tmp/inventory.md
+          python - <<'PY'
+          import re
+          def sections(path):
+              text = open(path, encoding="utf-8").read()
+              # Availability and audited-corpus sections are catalogue-independent.
+              m = re.search(r"## Offerings and availability(.*?)## Registered source documents",
+                            text, re.S)
+              assert m, f"could not find the registry sections in {path}"
+              return m.group(1)
+          a, b = sections("/tmp/inventory.md"), sections("CURRICULUM_INVENTORY.md")
+          assert a == b, "CURRICULUM_INVENTORY.md is stale — run scripts/generate_inventory.py"
+          print("inventory is current")
+          PY

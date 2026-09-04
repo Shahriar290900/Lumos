@@ -1,14 +1,16 @@
 # Lumos Test Matrix
 
-**Baseline: there are no tests in either legacy repository.** No `test_*.py`, no `conftest.py`, no `*.spec.js`, no `pytest.ini`, no Playwright or Vitest configuration. The only CI is a tag-triggered installer build that asserts nothing about behaviour. Everything below is a new build.
+**Status 2026-09-04: 47 tests passing.** The rows marked ✅ below are implemented and green; the rest are not yet written.
+
+**Baseline: there were no tests in either legacy repository.** No `test_*.py`, no `conftest.py`, no `*.spec.js`, no `pytest.ini`, no Playwright or Vitest configuration. The only CI is a tag-triggered installer build that asserts nothing about behaviour. Everything below is a new build.
 
 **Prerequisite:** the deterministic mock model provider. No test may require a GPU or a credential.
 
 | Area | Test | Layer | Required before MVP |
 |---|---|---|---:|
-| Curriculum | unavailable subject is rejected before retrieval | integration | Yes |
-| Curriculum | subject with zero indexed chunks reports unavailable (C.2.8 regression) | unit | Yes |
-| Curriculum | invalid curriculum/level combination rejected | integration | Yes |
+| Curriculum | unavailable subject is rejected before retrieval | integration | ✅ |
+| Curriculum | subject with zero indexed chunks reports unavailable (C.2.8 regression) | unit | ✅ |
+| Curriculum | invalid curriculum/level combination rejected | integration | ✅ |
 | Retrieval | only in-scope chunks are retrieved — metadata filter applied **before** ranking (C.2.3 regression) | integration | Yes |
 | Retrieval | RRF over fixed rank lists produces the known fused order | unit | Yes |
 | Retrieval | source priority preserved through fusion and reranking | integration | Yes |
@@ -29,12 +31,14 @@
 | Auth | ownership enforced server-side on every resource | integration | Yes |
 | Auth | missing `AUTH_SECRET` aborts startup (C.2.9 regression) | unit | Yes |
 | Streaming | SSE closes cleanly under timeout and under error | integration | Yes |
-| Database | migration from an empty database succeeds and reverses | integration | Yes |
-| Database | expected indexes exist; the metadata-filter query plan is sane | integration | Yes |
+| Database | migration from an empty database succeeds and reverses | integration | ✅ |
+| Database | expected indexes exist; the metadata-filter query plan is sane | integration | partial |
 | Model gateway | provider swap requires no product-code change | unit | Yes |
 | Model gateway | provider failure falls back per policy | integration | Yes |
-| Model gateway | full suite passes with `AI_PROVIDER=mock` and an empty `.env` | CI | Yes |
+| Model gateway | full suite passes with `AI_PROVIDER=mock` and an empty `.env` | CI | ✅ |
 | Security | no secret appears in any client bundle | build-time | Yes |
+| Security | no licensed source material or oversized file is tracked in git | CI | ✅ |
+| Security | pre-commit hook blocks `git add -f` of a PDF | manual | ✅ |
 | Security | prompt-injection corpus does not alter system behaviour | evaluation | Yes |
 | Security | upload validation: type, size, path traversal | integration | Phase 2 |
 | Browser | core tutor journey with visible citations | Playwright | Yes |
@@ -47,6 +51,12 @@
 | Performance | standard query latency measured, low-end profile + throttled network | performance | Yes |
 | AI quality | golden evaluation set, regression-gated | evaluation | Yes |
 | AI quality | Bangla and English scored **separately** | evaluation | Yes |
+
+## Implemented so far
+
+`tests/unit/test_availability_rule.py` — the availability rule clause by clause (10 parametrised cases), plus the schema constraints that make an inconsistent row unwritable: indexed-without-chunks, published-on-unknown-licence, published-without-language, visible-without-explanation, malformed checksum, duplicate document, out-of-range priority.
+
+`tests/integration/test_registry_api.py` — migration from empty and back, seed idempotence, registry-versus-auditor agreement, private sources hidden from public reads, source ordering by priority, per-document ingestion routes, the gate raising rather than returning a flag, ambiguous resolution refused rather than guessed, and the HTTP surface including the 409-with-reasons refusal.
 
 ## Golden evaluation set
 

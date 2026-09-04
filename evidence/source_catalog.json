@@ -1,0 +1,508 @@
+{
+  "generated_at": "2026-09-04T00:30:18+00:00",
+  "root": "/mnt/user-data/uploads/Lumos/lumos/private_source_materials",
+  "note": "Metadata only. No document content appears in this file. The PDFs described here are licensed material and must never be committed.",
+  "document_count": 19,
+  "total_bytes": 131068674,
+  "by_document_type": {
+    "examiner_report": 6,
+    "mark_scheme": 6,
+    "question_paper": 6,
+    "textbook": 1
+  },
+  "by_ingestion_route": {
+    "ocr_required": 3,
+    "text": 14,
+    "mixed": 2
+  },
+  "duplicate_checksums": {},
+  "documents": [
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Examiner-report/wph11-01-pef-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "examiner_report",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH11",
+      "unit": 1,
+      "qualification": "International AS",
+      "title": "Mechanics and Materials",
+      "filename": "wph11-01-pef-20240815.pdf",
+      "bytes": 2122386,
+      "sha256": "049eeb7ffdffd643ff8918deaedfca1a774286e2c101d0891e12f01b69a8ac94",
+      "text_layer": {
+        "pages": 39,
+        "sampled_pages": 8,
+        "pages_with_text": 0,
+        "pages_garbled": 8,
+        "pages_empty": 0,
+        "verdict": "ocr_required",
+        "reason": "sampled pages decode to (cid:N) glyphs — font has no ToUnicode map"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Examiner-report/wph12-01-pef-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "examiner_report",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH12",
+      "unit": 2,
+      "qualification": "International AS",
+      "title": "Waves and Electricity",
+      "filename": "wph12-01-pef-20240815.pdf",
+      "bytes": 7058960,
+      "sha256": "b5aa8e73f53ad4d3943d535cdf48db6fdbab19b02d8c648b62ce02630a40e8e5",
+      "text_layer": {
+        "pages": 82,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Examiner-report/wph13-01-pef-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "examiner_report",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH13",
+      "unit": 3,
+      "qualification": "International AS",
+      "title": "Practical Skills in Physics I",
+      "filename": "wph13-01-pef-20240815.pdf",
+      "bytes": 1671222,
+      "sha256": "4ca2bce79e1423128d2d51647b6679c6b0f911db86512b000cfc028e1615254b",
+      "text_layer": {
+        "pages": 45,
+        "sampled_pages": 8,
+        "pages_with_text": 0,
+        "pages_garbled": 8,
+        "pages_empty": 0,
+        "verdict": "ocr_required",
+        "reason": "sampled pages decode to (cid:N) glyphs — font has no ToUnicode map"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Examiner-report/wph14-01-pef-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "examiner_report",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH14",
+      "unit": 4,
+      "qualification": "IAL A2",
+      "title": "Further Mechanics, Fields and Particles",
+      "filename": "wph14-01-pef-20240815.pdf",
+      "bytes": 6214112,
+      "sha256": "1918d8bbcf9eafbf4af4d9b2e893c3fc25a3bc819f48171296e1fba2a1b6330a",
+      "text_layer": {
+        "pages": 72,
+        "sampled_pages": 8,
+        "pages_with_text": 7,
+        "pages_garbled": 1,
+        "pages_empty": 0,
+        "verdict": "mixed",
+        "reason": "7/8 sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Examiner-report/wph15-01-pef-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "examiner_report",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH15",
+      "unit": 5,
+      "qualification": "IAL A2",
+      "title": "Thermodynamics, Radiation, Oscillations and Cosmology",
+      "filename": "wph15-01-pef-20240815.pdf",
+      "bytes": 1288672,
+      "sha256": "b5dcc4ac6a6aad029e6429bb154095729727bccf7dbd0cfb76681d2f6aee602f",
+      "text_layer": {
+        "pages": 49,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Examiner-report/wph16-01-pef-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "examiner_report",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH16",
+      "unit": 6,
+      "qualification": "IAL A2",
+      "title": "Practical Skills in Physics II",
+      "filename": "wph16-01-pef-20240815.pdf",
+      "bytes": 2485622,
+      "sha256": "e7d0cdb738820a2459b58bd7e17f08773c22f4f67ffdfb6a1ce62b0782fed557",
+      "text_layer": {
+        "pages": 49,
+        "sampled_pages": 8,
+        "pages_with_text": 6,
+        "pages_garbled": 2,
+        "pages_empty": 0,
+        "verdict": "mixed",
+        "reason": "6/8 sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Mark-scheme/wph11-01-rms-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "mark_scheme",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH11",
+      "unit": 1,
+      "qualification": "International AS",
+      "title": "Mechanics and Materials",
+      "filename": "wph11-01-rms-20240815.pdf",
+      "bytes": 452512,
+      "sha256": "42fe35f42bd36419325fbf6af688a08f223709d9de4a4fe2a76322f1c333ce9e",
+      "text_layer": {
+        "pages": 18,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Mark-scheme/wph12-01-rms-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "mark_scheme",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH12",
+      "unit": 2,
+      "qualification": "International AS",
+      "title": "Waves and Electricity",
+      "filename": "wph12-01-rms-20240815.pdf",
+      "bytes": 395836,
+      "sha256": "affcb818a5b17a84c92d7745935cc4ba9d2cf5ef154ef9928bc90ebeff82c882",
+      "text_layer": {
+        "pages": 16,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Mark-scheme/wph13-01-rms-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "mark_scheme",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH13",
+      "unit": 3,
+      "qualification": "International AS",
+      "title": "Practical Skills in Physics I",
+      "filename": "wph13-01-rms-20240815.pdf",
+      "bytes": 346912,
+      "sha256": "bb78c5bc48727a2b4c585cb49754775f47d67e7e96744e5e8700eb8b06f07801",
+      "text_layer": {
+        "pages": 11,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Mark-scheme/wph14-01-rms-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "mark_scheme",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH14",
+      "unit": 4,
+      "qualification": "IAL A2",
+      "title": "Further Mechanics, Fields and Particles",
+      "filename": "wph14-01-rms-20240815.pdf",
+      "bytes": 496845,
+      "sha256": "5d721b2be78a9f967ba3b15e1eb2b6d121984746eace01d7248358c89aeac5cb",
+      "text_layer": {
+        "pages": 18,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Mark-scheme/wph15-01-rms-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "mark_scheme",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH15",
+      "unit": 5,
+      "qualification": "IAL A2",
+      "title": "Thermodynamics, Radiation, Oscillations and Cosmology",
+      "filename": "wph15-01-rms-20240815.pdf",
+      "bytes": 485298,
+      "sha256": "d5490426a61f7543ced7753aa7e80d2b4c22716c3ce485aad277735cbf2f2677",
+      "text_layer": {
+        "pages": 18,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Mark-scheme/wph16-01-rms-20240815.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "mark_scheme",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH16",
+      "unit": 6,
+      "qualification": "IAL A2",
+      "title": "Practical Skills in Physics II",
+      "filename": "wph16-01-rms-20240815.pdf",
+      "bytes": 390535,
+      "sha256": "e0bee0a414ff30f567850c41e60b171e1f3f03088d97ed451138823bf55c5f3d",
+      "text_layer": {
+        "pages": 12,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph11-01-que-20240511.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "question_paper",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH11",
+      "unit": 1,
+      "qualification": "International AS",
+      "title": "Mechanics and Materials",
+      "filename": "wph11-01-que-20240511.pdf",
+      "bytes": 849999,
+      "sha256": "a3bbdd75e02a33f887235599ed6377f327398ebf5f74ec20bfabf16796be3f9f",
+      "text_layer": {
+        "pages": 28,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph12-01-que-20240516.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "question_paper",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH12",
+      "unit": 2,
+      "qualification": "International AS",
+      "title": "Waves and Electricity",
+      "filename": "wph12-01-que-20240516.pdf",
+      "bytes": 944352,
+      "sha256": "0621ff278561adad08b905dec04b31ee521845f47da55c18b2988bc6cf489f4a",
+      "text_layer": {
+        "pages": 28,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph13-01-que-20240521.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "question_paper",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH13",
+      "unit": 3,
+      "qualification": "International AS",
+      "title": "Practical Skills in Physics I",
+      "filename": "wph13-01-que-20240521.pdf",
+      "bytes": 610622,
+      "sha256": "e54a2dcc70e87642883facc2d48aa03c9b13e999052f225d72074d5870066035",
+      "text_layer": {
+        "pages": 20,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph14-01-que-20240601.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "question_paper",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH14",
+      "unit": 4,
+      "qualification": "IAL A2",
+      "title": "Further Mechanics, Fields and Particles",
+      "filename": "wph14-01-que-20240601.pdf",
+      "bytes": 1080878,
+      "sha256": "a8327da4726ce80c428e296efc4d1dd08a64940508b8d9673634b46700a2d266",
+      "text_layer": {
+        "pages": 32,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph15-01-que-20240606.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "question_paper",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH15",
+      "unit": 5,
+      "qualification": "IAL A2",
+      "title": "Thermodynamics, Radiation, Oscillations and Cosmology",
+      "filename": "wph15-01-que-20240606.pdf",
+      "bytes": 1235700,
+      "sha256": "a5f14c2ff2444e8731a60623874fd8a287a7f66742c7905fc42296942b73f415",
+      "text_layer": {
+        "pages": 32,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/2024 May June/Question-paper/wph16-01-que-20240611.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "question_paper",
+      "source_priority": 1,
+      "session": {
+        "year": 2024,
+        "series": "May June"
+      },
+      "paper_code": "WPH16",
+      "unit": 6,
+      "qualification": "IAL A2",
+      "title": "Practical Skills in Physics II",
+      "filename": "wph16-01-que-20240611.pdf",
+      "bytes": 846768,
+      "sha256": "e4b1aa884e215f4ca458d4c9a9c9e918c00d16673ab9965b645a06da97da3c84",
+      "text_layer": {
+        "pages": 24,
+        "sampled_pages": 8,
+        "pages_with_text": 8,
+        "pages_garbled": 0,
+        "pages_empty": 0,
+        "verdict": "text",
+        "reason": "all sampled pages yielded text"
+      }
+    },
+    {
+      "relative_path": "Edexcel Physics/textbooks/Edexcel_AS_Physics.pdf",
+      "subject_folder": "Edexcel Physics",
+      "document_type": "textbook",
+      "source_priority": 2,
+      "session": null,
+      "filename": "Edexcel_AS_Physics.pdf",
+      "bytes": 102091443,
+      "sha256": "ac79286328cc5c872037414fecc8c26f0940186c66968bf2df53fc007435c398",
+      "text_layer": {
+        "pages": 225,
+        "sampled_pages": 8,
+        "pages_with_text": 0,
+        "pages_garbled": 0,
+        "pages_empty": 8,
+        "verdict": "ocr_required",
+        "reason": "sampled pages contain no text layer (scanned images)"
+      }
+    }
+  ]
+}

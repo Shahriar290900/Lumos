@@ -64,3 +64,33 @@
 **Status:** Accepted · **Date:** 2026-09-04
 **Decision:** no secret has a default value. A missing required secret aborts startup with a clear error.
 **Reason:** `web/app.py:38` falls back to `"shikhbo_dev_secret_2024"` when `SECRET_KEY` is unset, so a deploy that forgets the variable silently gets a publicly known session-signing key.
+
+## ADR-013 — Availability is a database view, not application code
+**Status:** Accepted · **Date:** 2026-09-04
+**Decision:** the rule that decides whether a subject may be queried lives in one SQL view, `curriculum_availability`, which also returns `blocked_reasons`. Application code reads the view; it does not restate the rule.
+**Reason:** two copies of a rule are two rules. A Python check and a SQL check drift, and the one that drifts is the one nobody tested. Returning the reasons alongside the verdict means a refusal can be explained to a student instead of appearing arbitrary.
+**Consequence:** `CurriculumRegistry.require_available()` raises rather than returning a boolean, so a forgotten `if` cannot become an ungrounded answer. A CI check asserts the view never reports available with blocked reasons present, or vice versa.
+
+## ADR-014 — Audited counts are separate from indexed counts
+**Status:** Accepted · **Date:** 2026-09-04
+**Decision:** `corpus_snapshots` records what an auditor counted in the source material, with the method and evidence file that produced the number. `subject_offerings.indexed_chunk_count` records what is actually in the store. They are different columns in different tables and are never conflated.
+**Reason:** the 180 legacy records exist; zero of them are indexed. A single "chunk count" would have to mean one or the other, and whichever it meant, the other would be misreported. The prebuild pack's 1,022 figure was exactly this kind of number — real-sounding, attached to nothing.
+**Consequence:** every snapshot carries `method` and `evidence_ref`. `scripts/check_registry_consistency.py` fails the build when a snapshot disagrees with the auditor's current output, and `CURRICULUM_INVENTORY.md` is generated from both rather than written by hand.
+
+## ADR-015 — Ingestion route is a per-document property
+**Status:** Accepted · **Date:** 2026-09-04
+**Decision:** each source document records its own `ingestion_route` — `text`, `ocr_required`, `mixed` or `structured` — determined by probing the file at catalogue time.
+**Reason:** measured, not assumed. Within the 2024 May/June examiner reports, WPH11 and WPH13 decode to `(cid:N)` glyphs and need OCR, WPH12 and WPH15 extract cleanly, WPH14 and WPH16 are mixed. A corpus-level setting would be wrong for half of them. *Student Book 1* has no text layer on any of its 225 pages.
+**Consequence:** `scripts/catalog_sources.py` probes and records; the pipeline dispatches on the recorded route; CI asserts the registry still matches the catalogue.
+
+## ADR-016 — Multi-part context comes from chunk granularity, not parsed dependency edges
+**Status:** Accepted · **Date:** 2026-09-04
+**Decision:** one complete main question, with all its sub-parts, is one chunk. `depends_on` remains in the schema as an enhancement and is not a prerequisite for multi-part tutoring.
+**Reason:** evidence. A scan of all three AS papers for explicit cross-references — "your answer to", "answer to part", "value calculated in", "use your", "obtained in" — returns **zero matches**. The whitepaper's dependency-extraction mechanism has nothing to operate on in this corpus. Chunking a whole question together gives the tutor every part's context whenever any part is retrieved, by construction rather than by parsing.
+**Consequence:** LUMOS-016 is not blocked on dependency extraction. If a later session's papers do contain explicit references, `depends_on` is populated then and improves ordering; it does not gate the feature.
+
+## ADR-017 — Licensed source material never enters version control
+**Status:** Accepted · **Date:** 2026-09-04
+**Decision:** `private_source_materials/` is gitignored, `.githooks/pre-commit` refuses any commit touching that path, any PDF outside `docs/`, any file over 10 MB, and any file matching a credential pattern; and a CI job fails the build if any of those are tracked.
+**Reason:** the licensed material sits inside the repository working tree for convenience, which puts 125 MB of Pearson copyright one `git add -A` away from a public push. `.gitignore` alone does not survive `git add -f`.
+**Consequence:** the hook needs `git config core.hooksPath .githooks` once per clone; CI is the backstop for anyone who has not run it. Derived chunk text is treated as licensed too — retrieval context only, never redistributed.

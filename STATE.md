@@ -1,31 +1,47 @@
 # Lumos State
 
-**Current phase:** Phase 0 — Foundation
-**Last completed goal:** LUMOS-000 Reconnaissance (2026-09-04)
-**Current goal:** LUMOS-004A — Curriculum Registry + Coverage Gates (not started)
-**Repository:** `github.com/Shahriar290900/Lumos` — reconnaissance artifacts committed; no product code
+**Current phase:** Phase 0.5 — Curriculum and data foundation
+**Last completed goal:** LUMOS-004A — Curriculum Registry + Coverage Gates (2026-09-04)
+**Next goal:** LUMOS-004B — Canonical chunk schema + legacy normalisation adapter
+**Repository:** `github.com/Shahriar290900/Lumos`
 
-## Verified as of 2026-09-04
+## Completed
 
-- Legacy repositories audited at `Shikhbo-Local-App@b783680` and `shikhbo-ai@64b58c9`
-- **Corpus: 180 unique records** — SSC English 43, SSC ICT 120, Edexcel IAL Physics 5.6 17. The prebuild pack's ~1,022 figure is superseded (ADR-008)
-- 137 records exist identically in both repositories; the naive union of 317 is double-counting
-- `shikhbo-ai/rag.py` implements FAISS + BM25 + RRF (k=60) + BGE-Reranker-v2-M3 + confidence gating — the strongest reusable asset
-- **No tests exist in either repository**
-- **No secrets are committed in either repository** (verified by scan)
-- All nine model IDs named across the whitepaper, pack and code exist on the Hugging Face Hub
-- Ten code defects recorded in `RECONNAISSANCE_REPORT.md` §C.2, each with a file reference
+**LUMOS-000 Reconnaissance** (2026-09-04) — both legacy repositories audited; corpus baseline corrected from a documented ~1,022 to a verified **180** (ADR-008); ten code defects recorded with file references; `RECONNAISSANCE_REPORT.md`.
 
-## Not verified / not true
+**LUMOS-004A Curriculum Registry + Coverage Gates** (2026-09-04) — evidence below.
 
-- The ~2.58 GB Edexcel Physics corpus described in the whitepaper is **not present** in either repository (BLOCK-001)
-- Multi-part question parsing, `depends_on` extraction and mark-scheme linkage have **no implementation and no data**
-- No infrastructure is provisioned: no Neon project, no Cloudflare zone, no R2 bucket, no Render service, no model endpoint
-- Pricing figures quoted in the whitepaper and prebuild pack are not re-verified
+## Verified
+
+- **Registry schema** — 7 tables, 1 view, 6 enums, reversible migration. Applied, reverted to empty and re-applied against PostgreSQL 16.13 + pgvector 0.6.0.
+- **Availability** is computed in one SQL view with machine-readable `blocked_reasons` (ADR-013). No offering is available; every one explains why.
+- **Seed** derives every number from `evidence/*.json` rather than hand-typed constants: 2 curricula, 2 syllabus versions, 4 levels, 8 subjects, 9 offerings, 42 source documents, 3 corpus snapshots.
+- **47 tests pass** — availability rule clause by clause, schema constraints, migration from empty and back, seed idempotence, registry/evidence agreement, HTTP behaviour.
+- **The regression case is covered.** The বাংলা subject with zero chunks is unavailable, and `POST /tutor/ask` returns 409 with reasons rather than an answer.
+- **Consistency gate works and was proved to fire** — corrupting a snapshot count made `scripts/check_registry_consistency.py` exit 1 with the drift named.
+- **`CURRICULUM_INVENTORY.md` is generated** from the registry, with a `--check` mode CI runs.
+- **19 private Edexcel PDFs catalogued and checksummed** (125 MB). Ingestion route determined per document by probing, not assumed.
+- **Licensed material is protected** by `.gitignore`, a `.githooks/pre-commit` hook (self-tested: it blocked a `git add -f` PDF), and a CI guard job.
+- **The whole suite runs with an empty `.env`** and `AI_PROVIDER=mock`. No model credential, no GPU.
+
+## Measured, not assumed
+
+- Question papers: `(Total for Question N = M marks)` is a 100 % reliable boundary — 19/19 in WPH11. 41 main questions, 210 marks across the three AS papers.
+- **Zero explicit dependency cross-references** in any AS paper. Multi-part context therefore comes from chunk granularity, not parsed `depends_on` edges (ADR-016).
+- Examiner reports differ within one session: WPH11/13 need OCR, WPH12/15 parse, WPH14/16 are mixed (ADR-015).
+- *Student Book 1*: **no text layer on any of 225 pages**. Full OCR. Tesseract at 250 DPI is good on prose; specification references and equations degrade and need targeted handling.
+- Mark schemes carry proper Unicode mathematics and are the repair source for equations lost to glyph failures in the question papers.
+
+## Not true / not done
+
+- No corpus is ingested. `indexed_chunk_count` is 0 everywhere, so nothing is available. Correct, not a defect.
+- No infrastructure is provisioned: no Neon project, Cloudflare zone, R2 bucket, Render service or model endpoint.
+- The ~2.58 GB Edexcel corpus in the whitepaper remains unlocated (BLOCK-001 decided, BLOCK-001A open).
+- No front end. No retrieval. No Model Gateway yet.
 
 ## Open blockers
 
-BLOCK-001 (whitepaper corpus gap — **critical**), BLOCK-002 (Neon), BLOCK-003 (Cloudflare/R2), BLOCK-004 (Render), BLOCK-005 (model serving + budget), BLOCK-006 (auth provider), BLOCK-007 (under-18 data policy), BLOCK-008 (source licensing), BLOCK-009 (Bangla OCR repairability). See `BLOCKERS.md`.
+BLOCK-001A (locate the claimed corpus), BLOCK-002 (Neon), BLOCK-003 (Cloudflare/R2), BLOCK-004 (Render), BLOCK-005 (model serving + budget), BLOCK-006 (auth), BLOCK-007 (under-18 policy), BLOCK-008 (licensing), BLOCK-009 (Bangla OCR repairability). BLOCK-001 is decided.
 
 ## Rule
 

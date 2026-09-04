@@ -13,8 +13,22 @@
 - [x] Record blockers
 - [x] Commit to the Lumos repository
 
+## LUMOS-004A — complete (2026-09-04)
+- [x] Registry schema, reversible migration, tested up → down → up
+- [x] Availability computed in one SQL view with machine-readable reasons
+- [x] Seed derived from audited evidence, never hand-typed
+- [x] Coverage gate refuses unavailable subjects before retrieval
+- [x] বাংলা regression case covered by tests
+- [x] Consistency gate proved to fire on injected drift
+- [x] `CURRICULUM_INVENTORY.md` generated from the registry
+- [x] 19 private Edexcel PDFs catalogued and checksummed
+- [x] Licensed material protected by gitignore + pre-commit hook + CI guard
+- [x] Ingestion workflow designed from inspected sources (`docs/INGESTION_DESIGN.md`)
+- [x] 47 tests passing with an empty `.env`
+
 ## Human setup — outstanding
-- [ ] Decide the whitepaper corpus position (BLOCK-001) — **critical**
+- [x] Decide the whitepaper corpus position (BLOCK-001) — **decided 2026-09-04**
+- [ ] Locate the claimed 2.58 GB Edexcel corpus, or confirm it does not exist (BLOCK-001A)
 - [ ] Create the Neon project, enable pgvector, choose the region (BLOCK-002)
 - [ ] Create the Cloudflare zone and R2 bucket; decide the domain (BLOCK-003)
 - [ ] Create Render services (BLOCK-004)
@@ -29,13 +43,15 @@
 - [ ] `.claude/agents` and `.claude/skills`
 - [ ] Hooks that block completion on failing tests
 - [ ] Lint, typecheck, format for both TypeScript and Python
-- [ ] `.env.example` committed; `.env` gitignored and never committed
-- [ ] CI that runs the full suite with an empty `.env` via the mock provider
+- [x] `.env.example` committed; `.env` gitignored and never committed
+- [x] CI that runs the full suite with an empty `.env` via the mock provider
+- [x] Pre-commit guard blocking licensed material, large files and secrets
+- [ ] `git config core.hooksPath .githooks` run on every clone
 
 ## Verification gates — none passed yet
 - [ ] `pnpm` toolchain works
 - [ ] Python environment works
-- [ ] Local Postgres with pgvector works
+- [x] Local Postgres with pgvector works — PostgreSQL 16.13 + pgvector 0.6.0
 - [ ] Neon connectivity verified
 - [ ] Cloudflare auth verified
 - [ ] R2 upload/read verified

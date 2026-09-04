@@ -1,148 +1,105 @@
-# Lumos Curriculum Inventory — Verified Baseline
+# Lumos Curriculum Inventory
 
-**Audit date:** 2026-09-04
-**Method:** every JSONL file in both repositories parsed record by record.
-**Reproduce:** `python scripts/audit_corpus.py <path>/Shikhbo-Local-App/raw_data`
-**Machine-readable evidence:** `evidence/curriculum_audit_local.json`, `evidence/curriculum_audit_combined.json`
+> **Generated file — do not edit by hand.**
+> `DATABASE_URL=... python scripts/generate_inventory.py --output CURRICULUM_INVENTORY.md`
+>
+> Every number here is read from the curriculum registry and from the corpus
+> auditor's evidence files. The prebuild pack's inventory stated 1,022 records
+> against an actual 180 because it was prose nobody re-derived (ADR-008). CI
+> re-runs `scripts/check_registry_consistency.py` so the two cannot drift again.
 
-> **Supersedes the prebuild pack.** The Lumos prebuild pack stated 1,022 records
-> (671 English / 253 ICT / 98 Physics). That figure is not supported by the
-> repositories. The verified total is **180**. See ADR-008 in `DECISIONS.md`
-> and §D.2 of `RECONNAISSANCE_REPORT.md`. The pack's own audit script, run
-> unmodified against the real data, returns the corrected numbers below.
+Generated: 2026-09-04
 
-Repositories audited:
+## Offerings and availability
 
-- `https://github.com/Shahriar290900/Shikhbo-Local-App` @ `b783680`
-- `https://github.com/Shahriar290900/shikhbo-ai` @ `64b58c9`
+| Offering | Curriculum | Subject | Level | Status | Indexed chunks | Sources | Available |
+|---|---|---|---|---|---:|---:|---|
+| `edexcel-ial/physics/international-as` | EDEXCEL_IAL | Physics | International AS | in preparation | 0 | 10 | no |
+| `edexcel-ial/physics/a2` | EDEXCEL_IAL | Physics | International A2 | planned — no corpus | 0 | 10 | no |
+| `nctb/bangla/ssc` | NCTB | Bangla | Secondary School Certificate | planned — no corpus | 0 | 0 | no |
+| `nctb/biology/ssc` | NCTB | Biology | Secondary School Certificate | planned — no corpus | 0 | 0 | no |
+| `nctb/chemistry/ssc` | NCTB | Chemistry | Secondary School Certificate | planned — no corpus | 0 | 0 | no |
+| `nctb/english/ssc` | NCTB | English | Secondary School Certificate | in preparation | 0 | 16 | no |
+| `nctb/ict/ssc` | NCTB | ICT | Secondary School Certificate | in preparation | 0 | 6 | no |
+| `nctb/mathematics/ssc` | NCTB | Mathematics | Secondary School Certificate | planned — no corpus | 0 | 0 | no |
+| `nctb/physics/ssc` | NCTB | Physics | Secondary School Certificate | planned — no corpus | 0 | 0 | no |
 
----
+**No offering is currently available.** Nothing has been ingested, so nothing may be queried. The API refuses every offering above before retrieval runs.
 
-## Verified inventory
+### Why each offering is unavailable
 
-`Shikhbo-Local-App/raw_data/` — 23 JSONL files, **180 records**, 0 parse errors, 0 duplicate `chunk_id`s.
-
-| Corpus | Files | Records | Class | Curriculum | Median content | Bangla records |
-|---|---:|---:|---|---|---:|---:|
-| English (*English For Today*, Units 1–16) | 16 | **43** | SSC | NCTB | 7,900 chars | 0 / 43 |
-| ICT (Chapters 1–6) | 6 | **120** | SSC | NCTB | 1,767 chars | 120 / 120 |
-| Physics (Astrophysics & Cosmology, spec 5.6) | 1 | **17** | A-level | Edexcel IAL | 1,560 chars | 0 / 17 |
-| **Total** | **23** | **180** | | | | **120 / 180** |
-
-### English — per unit
-
-| Unit | Records | | Unit | Records |
-|---:|---:|---|---:|---:|
-| 1 | 2 | | 9 | 2 |
-| 2 | 3 | | 10 | 2 |
-| 3 | 3 | | 11 | 4 |
-| 4 | 2 | | 12 | 3 |
-| 5 | 3 | | 13 | 2 |
-| 6 | 4 | | 14 | 2 |
-| 7 | 4 | | 15 | 2 |
-| 8 | 2 | | 16 | 3 |
-| | | | **Total** | **43** |
-
-Filenames are inconsistently cased and spaced (`English Unit3.jsonl`, `English unit 1.jsonl`, `English unit10.jsonl`). Normalise at ingest; do not rely on filename parsing.
-
-### ICT — per chapter
-
-| Chapter | Records |
-|---:|---:|
-| C1 | 12 |
-| C2 | 28 |
-| C3 | 8 |
-| C4 | 7 |
-| C5 | 50 |
-| C6 | 15 |
-| **Total** | **120** |
-
-### Physics
-
-`Astrophysics_Cosmology_RAG.jsonl` — **17 records**, class `A-level`, subject `Physics`, chapter `5.6` ("Astrophysics and Cosmology"), with Edexcel IAL `spec_ref` values (e.g. `5.6.154, 5.6.155`). This is one specification area of revision notes. It is **not** A-level Physics coverage and must never be labelled as such.
-
-### Cross-repository duplication
-
-`shikhbo-ai` carries 7 JSONL files at its repository root (ICT C1–C6 + Astrophysics), **137 records**. All 137 are byte-identical duplicates of files in `Shikhbo-Local-App/raw_data`:
-
-```
-combined audit of both roots:
-  JSONL files            : 30
-  Total records          : 317
-  Unique content blocks  : 180      ← the real number
-  Duplicate content grps : 137
-  Duplicate chunk_ids    : 137
-```
-
-Any pipeline that walks both repositories must deduplicate by content hash. The naive union (317) is double-counting.
-
-`shikhbo-ai` also holds `Astrophysics_Cosmology_Notes.pdf` (79 KB), chunked at ingest time by `ingest.py::_load_pdf_chunks()` at 1,600 chars / 200 overlap. Its chunk count is a deployment-time property, not repository state, and is excluded from the totals above.
-
----
-
-## Not present — must never be shown as available
-
-- Chemistry
-- Biology
-- Mathematics
-- Bangla (**advertised by the Local app's UI; no corpus exists** — see `RECONNAISSANCE_REPORT.md` §C.2.8)
-- NCTB Physics
-- Complete Edexcel Physics beyond specification area 5.6
-- Any HSC-level content
-- **Any past paper, mark scheme or examiner report, for any subject**
-
-The last item matters: the Lumos whitepaper describes a ~2.58 GB Edexcel Physics corpus of past papers, mark schemes and examiner reports (2009–Jan 2026) as ingested and Phase 1 implemented. **No such corpus exists in either repository.** See BLOCK-001 in `BLOCKERS.md`.
-
----
-
-## Observed legacy schema
-
-Not one schema. Common to all 180 records:
-
-```
-chunk_id  class  subject  chapter_no  page_no  topic
-prerequisite  keywords  token_count  content
-```
-
-Divergences:
-
-| Field | Records | Used by |
-|---|---:|---|
-| `chapter_title` | 80 | ICT C1–C2 |
-| `chapter_name` | 100 | English, Physics, ICT C3–C6 |
-| `spec_ref` | 17 | Physics only |
-
-`curriculum` and `language` do **not** exist in the files; `shikhbo-ai/ingest.py` injects them at ingest time.
-
-**Missing from all 180 records** — every field the canonical Lumos schema requires beyond the common set: `curriculum`, `curriculum_version`, `language`, `document_type`, `source_id`, `source_priority`, `provenance_hash`, `question_number`, `sub_question`, `marks`, `parent_question_id`, `depends_on`, `ingestion_version`. Quantified under `canonical_schema_gaps` in the evidence JSON.
-
----
-
-## Data-quality findings
-
-| Finding | Scale |
+| Offering | Blocked by |
 |---|---|
-| Bangla vowel-sign / conjunct corruption (e.g. `যযোগাযযোগ` for `যোগাযোগ`) | 73 of 180 records — 61 % of the Bangla corpus |
-| Broken word split across a line break | 66 of 180 |
-| Bullet glyph OCR'd as the letter `e` | English records, e.g. `SSC-English-C3-P1-CH1` |
-| Content truncated mid-word at chunk boundary | Observed in Physics and English |
-| `keywords` empty | **163 of 180** (90.6 %) — only Physics has real keywords |
-| `token_count` disagrees with word count by >50 % | 134 of 180 — treat as untrusted, recompute at ingest |
-| English chunks ~2,000 tokens (whole textbook units) | All 43 — far above the 400–600 token target |
+| `edexcel-ial/physics/international-as` | publication_status=in_preparation, indexing_status=sources_catalogued, evaluation_status=none, no_indexed_chunks |
+| `edexcel-ial/physics/a2` | publication_status=planned, indexing_status=sources_catalogued, evaluation_status=none, no_indexed_chunks |
+| `nctb/bangla/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
+| `nctb/biology/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
+| `nctb/chemistry/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
+| `nctb/english/ssc` | publication_status=in_preparation, indexing_status=normalising, evaluation_status=none, no_indexed_chunks, licence_status=unknown |
+| `nctb/ict/ssc` | publication_status=in_preparation, indexing_status=normalising, evaluation_status=none, no_indexed_chunks, licence_status=unknown |
+| `nctb/mathematics/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
+| `nctb/physics/ssc` | publication_status=planned, indexing_status=not_started, evaluation_status=none, no_indexed_chunks, licence_status=unknown, no_source_documents |
 
-Positives: all files parse cleanly; all `chunk_id`s unique; the identifier scheme (`SSC-ICT-C1-P1-CH1`, `EDEXCEL-IAL-PHYS-5.6-P1-CH1`) encodes curriculum/subject/chapter/page/index and is worth keeping; `page_no` and `prerequisite` are populated on every record (the latter as free text, needing normalisation to IDs rather than invention).
+## Audited legacy corpus
 
----
+`scripts/audit_corpus.py` over `23` JSONL files: **180 records**, 180 unique content blocks, 0 parse errors.
 
-## Production implications
+| Subject | Files | Records | Class | Median content | Bangla records | Registered to |
+|---|---:|---:|---|---:|---:|---|
+| English | 16 | **43** | SSC | 7900 chars | 0 | `nctb/english/ssc` |
+| ICT | 6 | **120** | SSC | 1766 chars | 120 | `nctb/ict/ssc` |
+| Physics | 1 | **17** | A-level | 1560 chars | 0 | `edexcel-ial/physics/a2` |
+| **Total** | **23** | **180** | | | | |
 
-1. Treat the current JSONL as a **legacy snapshot**, never as the production schema.
-2. Normalise all three shapes into one canonical schema before indexing (`docs/CHUNK_SCHEMA.md`).
-3. Deduplicate by content hash — 137 records exist twice across the two repos.
-4. Re-chunk the English corpus. ~2,000-token units are unusable for retrieval and for citation.
-5. Repair or re-extract the 73 damaged Bangla records; measure whether repair is mechanically sufficient before committing to it.
-6. Preserve provenance and page references through every transformation; keep original text alongside cleaned text.
-7. Keep Physics labelled as **Edexcel IAL spec 5.6 only**.
-8. Gate subject availability on the curriculum registry, never on the presence of a UI card.
-9. Record source licensing before any corpus is enabled for public or commercial use.
-10. **This file should become a generated artifact** once the curriculum registry exists (LUMOS-004A), so it cannot drift from reality again.
+Registry snapshots, each carrying the method and evidence file it came from:
+
+| Offering | Records | Method | Evidence |
+|---|---:|---|---|
+| `edexcel-ial/physics/a2` | 17 | `scripts/audit_corpus.py` | `evidence/curriculum_audit_local.json` |
+| `nctb/english/ssc` | 43 | `scripts/audit_corpus.py` | `evidence/curriculum_audit_local.json` |
+| `nctb/ict/ssc` | 120 | `scripts/audit_corpus.py` | `evidence/curriculum_audit_local.json` |
+
+These are **audited** counts of legacy source records, not indexed chunks. `indexed_chunk_count` stays 0 until the records are normalised, cleaned, re-chunked and written to the store — which is why no offering is available.
+
+## Registered source documents
+
+19 licensed PDFs (125 MB) catalogued by `scripts/catalog_sources.py`. The files themselves are private and are never committed; only their metadata appears here.
+
+| Offering | Type | Priority | Count | Pages | Ingestion route |
+|---|---|---:|---:|---:|---|
+| `edexcel-ial/physics/a2` | examiner_report | 1 | 2 | 121 | mixed |
+| `edexcel-ial/physics/a2` | examiner_report | 1 | 1 | 49 | text |
+| `edexcel-ial/physics/a2` | mark_scheme | 1 | 3 | 48 | text |
+| `edexcel-ial/physics/a2` | question_paper | 1 | 3 | 88 | text |
+| `edexcel-ial/physics/a2` | legacy_jsonl | 2 | 1 | — | structured |
+| `edexcel-ial/physics/international-as` | examiner_report | 1 | 2 | 84 | ocr_required |
+| `edexcel-ial/physics/international-as` | examiner_report | 1 | 1 | 82 | text |
+| `edexcel-ial/physics/international-as` | mark_scheme | 1 | 3 | 45 | text |
+| `edexcel-ial/physics/international-as` | question_paper | 1 | 3 | 76 | text |
+| `edexcel-ial/physics/international-as` | textbook | 2 | 1 | 225 | ocr_required |
+| `nctb/english/ssc` | legacy_jsonl | 2 | 16 | — | structured |
+| `nctb/ict/ssc` | legacy_jsonl | 2 | 6 | — | structured |
+
+Priority 1 is official examination material, 2 core textbook, 3 supplementary (ADR-009). The ingestion route is recorded per document, not per corpus: within one session some examiner reports carry a usable text layer and others decode to `(cid:N)` glyphs and need OCR.
+
+## Legacy corpus quality
+
+| Finding | Records affected |
+|---|---:|
+| Bangla vowel-sign / conjunct corruption | 73 / 180 |
+| Word broken across a line break | 66 / 180 |
+| Missing canonical schema fields | up to 180 / 180 |
+
+No corpus is published until these are repaired and an evaluation passes (LUMOS-004C, LUMOS-004E).
+
+## Not present
+
+- **Bangla** (NCTB SSC) — Coming soon — no Bangla language corpus has been ingested yet.
+- **Biology** (NCTB SSC) — Coming soon — no Biology corpus has been ingested yet.
+- **Chemistry** (NCTB SSC) — Coming soon — no Chemistry corpus has been ingested yet.
+- **Mathematics** (NCTB SSC) — Coming soon — no Mathematics corpus has been ingested yet.
+- **Physics** (NCTB SSC) — Coming soon — no NCTB Physics corpus has been ingested yet.
+
+Registered as known-but-unavailable so the interface can explain rather than omit, and so a request naming one is refused by the registry rather than falling through to an ungrounded answer (ADR-011).
+
+Also absent, in every subject: past papers, mark schemes and examiner reports for any NCTB curriculum. The ~2.58 GB Edexcel corpus described in the whitepaper remains unlocated — see BLOCK-001A in `BLOCKERS.md`.

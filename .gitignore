@@ -48,3 +48,16 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# ─── Private source materials — NEVER COMMIT ──────────────────────────────────
+# Licensed Pearson Edexcel and NCTB material held for private ingestion only.
+# Redistribution is not permitted. See BLOCKERS.md BLOCK-008.
+private_source_materials/
+**/private_source_materials/
+*.pdf
+!docs/**/*.pdf
+
+# Derived artifacts that may embed licensed text verbatim
+data/derived/
+data/chunks/
+*.chunks.jsonl

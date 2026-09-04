@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Lumos pre-commit guard.
+#
+# Refuses commits that would place licensed source material, secrets, or large
+# binaries into the public repository. .gitignore alone is not sufficient:
+# `git add -f` bypasses it, and this hook is the second line of defence.
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+# Verify:                  git config --get core.hooksPath
+#
+# This hook is intentionally strict. If it blocks something legitimate, fix the
+# path or the file — do not use --no-verify.
+
+set -euo pipefail
+
+RED=$'\033[31m'; YEL=$'\033[33m'; RST=$'\033[0m'
+fail=0
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR || true)
+[ -z "$staged" ] && exit 0
+
+# ── 1. Private source material paths ─────────────────────────────────────────
+while IFS= read -r f; do
+    case "$f" in
+        *private_source_materials/*|private_source_materials/*)
+            echo "${RED}BLOCKED${RST} licensed source material: $f"
+            fail=1
+            ;;
+    esac
+done <<< "$staged"
+
+# ── 2. PDFs outside docs/ ────────────────────────────────────────────────────
+while IFS= read -r f; do
+    case "$f" in
+        docs/*.pdf|docs/*/*.pdf) ;;
+        *.pdf)
+            echo "${RED}BLOCKED${RST} PDF outside docs/: $f"
+            echo "        Curriculum PDFs are licensed material and are never committed."
+            fail=1
+            ;;
+    esac
+done <<< "$staged"
+
+# ── 3. Large files ───────────────────────────────────────────────────────────
+MAX_BYTES=$((10 * 1024 * 1024))
+while IFS= read -r f; do
+    [ -f "$f" ] || continue
+    size=$(wc -c < "$f" | tr -d ' ')
+    if [ "$size" -gt "$MAX_BYTES" ]; then
+        echo "${RED}BLOCKED${RST} file over 10 MB ($((size / 1024 / 1024)) MB): $f"
+        echo "        Large binaries belong in R2, not in git."
+        fail=1
+    fi
+done <<< "$staged"
+
+# ── 4. Secrets ───────────────────────────────────────────────────────────────
+while IFS= read -r f; do
+    case "$f" in
+        .env.example) continue ;;
+        .env|.env.*|*.pem|*.key|credentials.json)
+            echo "${RED}BLOCKED${RST} secret file: $f"
+            fail=1
+            continue
+            ;;
+    esac
+    [ -f "$f" ] || continue
+    case "$(file -b --mime-type "$f" 2>/dev/null || echo text/plain)" in
+        text/*|application/json|application/javascript|inode/x-empty) ;;
+        *) continue ;;
+    esac
+    if git show ":$f" 2>/dev/null | grep -qE '(sk-[A-Za-z0-9]{20,}|hf_[A-Za-z0-9]{30,}|AIza[A-Za-z0-9_-]{30,}|postgres(ql)?://[^[:space:]]*:[^[:space:]]*@|-----BEGIN [A-Z ]*PRIVATE KEY)'; then
+        echo "${RED}BLOCKED${RST} possible live credential in: $f"
+        fail=1
+    fi
+done <<< "$staged"
+
+if [ "$fail" -ne 0 ]; then
+    echo
+    echo "${YEL}Commit refused by .githooks/pre-commit.${RST}"
+    echo "Fix the listed paths. Do not bypass with --no-verify."
+    exit 1
+fi
+exit 0

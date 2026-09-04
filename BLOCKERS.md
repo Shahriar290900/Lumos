@@ -6,31 +6,50 @@ Status values: `OPEN` · `DECIDED` · `RESOLVED`
 
 ---
 
-## BLOCK-001 — Whitepaper describes a corpus that does not exist in the repositories
+## BLOCK-001 — Whitepaper corpus claim: DECIDED
 
-**Severity:** Critical · **Status:** OPEN · **Owner:** Hameem
+**Severity:** Critical · **Status:** DECIDED (2026-09-04) · **Owner:** Hameem
 
-`Lumos_Whitepaper.pdf` states, in §1 and §4:
+**Decision.** The ~2.58 GB Edexcel Physics corpus described in `Lumos_Whitepaper.pdf` §1, §4 and §5.2 is **treated as unverified and historical** until it is independently located and audited. It is not present in either legacy repository and is not claimed as implemented anywhere in this project.
 
-> "the ingestion pipeline has processed a curriculum corpus of approximately 2.58 GB spanning examination sessions from 2009 to January 2026"
-> "**Phase 1 (implemented).** Pearson Edexcel Physics, A-Level, sessions 2009 through January 2026 … question papers, mark schemes, examiner reports, textbooks, and revision guides, ingested into a linked, chunked, vector-indexed corpus."
+Standing prohibitions, in force from now on:
 
-Verified reality across both repositories: **17 chunks** of Astrophysics/Cosmology revision notes (spec area 5.6, 36 KB) plus a 79 KB notes PDF. No question paper, mark scheme, examiner report or textbook is present. No ingestion code targets those document types. No record in the corpus carries a question, sub-question, marks or dependency field, so the boundary-detection, sub-question parsing and `depends_on` extraction described in whitepaper §5.3–§5.7 have no implementation and no data.
+- do not fabricate the missing corpus
+- do not generate placeholder Edexcel papers
+- do not claim the full Edexcel Physics corpus is implemented
+- do not modify the whitepaper silently
+- do not redistribute potentially copyrighted source material
 
-**Why this cannot wait.** BCOLBD final-round scoring awards 20 points for "*a well-documented and accessible code repository*" and 20 for "*clean, well-commented code and a deployment-ready inference model demonstrating the AI model's functionality and reproducibility*". An evaluator who reads the whitepaper and then opens the repository finds the gap. It is better found now, by us.
+**Verified baseline** (`scripts/audit_corpus.py`, `evidence/curriculum_audit_local.json`):
+SSC English 43 · SSC ICT 120 · Edexcel IAL Physics Astrophysics/Cosmology 17 · **total 180 legacy chunks**.
 
-**Question for the owner:** does the 2.58 GB corpus exist somewhere outside these repositories — a local disk, a private repo, Drive, an HF dataset — or was the claim aspirational?
+**What was added instead.** A real, private Edexcel source set now exists at `private_source_materials/Edexcel Physics/` — 19 licensed PDFs, 125 MB, catalogued and checksummed in `evidence/source_catalog.json`:
 
-**Paths, depending on the answer:**
+| Set | Documents | Registry offering | Scope |
+|---|---|---|---|
+| WPH11/12/13 — question papers, mark schemes, examiner reports | 9 | `edexcel-ial/physics/international-as` | **Demo scope** |
+| *Student Book 1* (Topics 1-4, AS content) | 1 | `edexcel-ial/physics/international-as` | **Demo scope** |
+| WPH14/15/16 — question papers, mark schemes, examiner reports | 9 | `edexcel-ial/physics/a2` | Held, not indexed |
 
-| If | Then |
-|---|---|
-| The corpus exists elsewhere | Provide access. It becomes the LUMOS-007 ingestion input, and the whitepaper needs no correction — but the pipeline described in §5.3–§5.7 still has to be *built*, because it does not exist in code. |
-| It does not exist | Decide between: (a) acquire and ingest a real Edexcel Physics corpus before the final round; (b) issue a corrected technical document for the final round that states verified scope accurately, keeping the whitepaper as the preliminary-round artifact it already is; (c) present the multi-part architecture as designed-and-partially-implemented, with the 180-record corpus as the honest demonstrated scope. |
+These are **not** equivalent to the claimed 2.58 GB archive: one session, not 2009-2026. They are licensed for private ingestion only, must never be committed (ADR-017), and cannot back a public offering until BLOCK-008 is resolved.
 
-**Recommendation:** whichever path is chosen, the final-round technical documentation must describe what the repository actually contains. A reproducibility claim an evaluator can falsify in five minutes costs more than a smaller honest scope.
+**Follow-on:** BLOCK-001A.
 
-**Blocks:** LUMOS-007 (ingestion scope), LUMOS-016 (multi-part questions — no data to build against), LUMOS-024 (technical documentation), LUMOS-025 (demo).
+---
+
+## BLOCK-001A — Locate and independently verify the claimed 2.58 GB Edexcel corpus
+
+**Severity:** High · **Status:** OPEN · **Owner:** Hameem
+
+The whitepaper is a filed competition document that describes a corpus spanning examination sessions from 2009 to January 2026, ingested and Phase 1 implemented. What exists is one session (2024 May/June) plus one textbook.
+
+**Task.** Determine whether the archive exists anywhere — a local disk, a private repository, cloud storage, an HF dataset — and if so, catalogue and checksum it with `scripts/catalog_sources.py` so its scale can be stated from evidence rather than recollection.
+
+**If it does not exist**, the final-round technical documentation must describe the corpus the repository actually holds. BCOLBD scores 20 points for "a deployment-ready inference model demonstrating the AI model's functionality and **reproducibility**" and 20 for "a complete code repository"; a reproducibility claim an evaluator can falsify in five minutes costs more than a smaller honest scope.
+
+**Do not** fabricate or synthesise the missing corpus under any circumstances.
+
+**Blocks:** LUMOS-024 (technical documentation), LUMOS-025 (demo), any public claim about Edexcel coverage.
 
 ---
 
@@ -42,7 +61,7 @@ No Neon project, no `DATABASE_URL`, no pgvector instance. Needed for the curricu
 
 **Needed:** a Neon project (region choice matters for Bangladesh latency — evaluate `ap-southeast-1` against the alternatives), with pgvector enabled and a development branch.
 
-**Note:** LUMOS-004A can proceed against a local Postgres container, so this does not block the next goal — only its deployment.
+**Update 2026-09-04:** LUMOS-004A was built and tested against a local PostgreSQL 16 + pgvector 0.6.0 instance, so this blocks deployment only, not development. The migration and seed are provider-agnostic and will apply to Neon unchanged.
 
 **Blocks:** LUMOS-006, deployment of LUMOS-004A.
 
@@ -121,7 +140,9 @@ The target user is an SSC student — most are under 18. The whitepaper commits 
 
 The corpus derives from NCTB textbooks and Pearson Edexcel material. No licence, permission or provenance record exists anywhere in either repository. The whitepaper's position — "materials are used as retrieval context, not redistributed; no model is fine-tuned on proprietary content" — is asserted but not implemented or evidenced.
 
-**Needed:** per-source licence status recorded in the registry before any corpus is published, and a decision on whether the current corpus may be used for a public demo, a competition submission, or a commercial launch — these are three different thresholds.
+**Update 2026-09-04:** the registry now records `licence_status` per offering and per source document, and the schema refuses to publish an offering whose licence is `unknown` or `restricted`. The Edexcel material is recorded as `permitted_private` on the owner's statement that it is for private ingestion; the NCTB legacy corpora remain `unknown`. Nothing is published, so nothing currently depends on this — but nothing can be.
+
+**Needed:** a decision on whether the current corpus may back a public demo, a competition submission, or a commercial launch — three different thresholds — and, for the Edexcel material, whether `permitted_private` can ever become `permitted_public`.
 
 **Blocks:** publishing any corpus; LUMOS-004D.
 
@@ -135,10 +156,12 @@ The corpus derives from NCTB textbooks and Pearson Edexcel material. No licence,
 
 **Needed:** access to the source PDFs the ICT corpus was extracted from, if they still exist. Without them, re-extraction is impossible and repair is the only option.
 
+**Note 2026-09-04:** OCR quality on the Edexcel scans was measured and is good (Tesseract at 250-300 DPI on both the textbook and the examiner reports). That is evidence the OCR toolchain is adequate for Latin script; it says nothing about Bangla, which is a materially harder script and must be measured separately before assuming re-extraction would improve on repair.
+
 **Blocks:** LUMOS-004C quality gate.
 
 ---
 
 ## Resolved
 
-*(none yet)*
+- **BLOCK-001** — decided 2026-09-04. See above; follow-on tracked as BLOCK-001A.
