@@ -265,9 +265,27 @@ These are constraints on the pipeline, not aspirations.
    outside `docs/`, and any file over 10 MB), and by a CI job that fails if
    either is tracked. `git add -f` does not get past the hook.
 2. **Derived text is licensed too.** Extracted chunks are Pearson content in
-   another form. They are retrieval context, never redistributed: the tutor
-   returns generated explanations with citations, never reproduced source text,
-   and no page image is served to a student.
+   another form. They are retrieval context: the tutor returns generated
+   explanations with citations, never reproduced source text.
+
+   **Amended 2026-09-04 (ADR-026).** Delivery is now split by document, and the
+   split is deliberate:
+
+   | Documents | Delivery | Retrieval |
+   |---|---|---|
+   | Question papers, mark schemes, examiner reports (WPH11–16) | **Served as PDFs in the application** | Yes |
+   | *Student Book 1* | **Never served**, no page, no image, no extract | Grounding only |
+
+   The exam documents are published openly by Pearson on
+   `qualifications.pearson.com`, with only the most recent twelve months
+   restricted to registered centres; the 2024 May/June session is outside that
+   window. *Student Book 1* is a commercial textbook rather than free
+   courseware, so it stays grounding-only regardless.
+
+   The registry cannot express this distinction yet — both sit at
+   `licence_status = 'permitted_private'`. That column lands in LUMOS-004C.2;
+   until it exists, no serving code may be written, because there is nothing for
+   it to check.
 3. **Provenance on every chunk.** `provenance_hash` resolves to an exact file by
    SHA-256 and an exact page. A citation that cannot be traced back to a page in
    a catalogued document is a bug.

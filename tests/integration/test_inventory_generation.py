@@ -89,7 +89,6 @@ def test_a_multi_document_batch_is_summed_not_sampled(conn):
     assert row["source_records"] == 41, (
         f"expected the batch summed to 41, got {row['source_records']} — "
         "a tie on started_at was broken by picking one document")
-    assert row["chunks_created"] == 41
 
 
 def test_only_the_most_recent_batch_is_reported(conn):
@@ -116,7 +115,28 @@ def test_only_the_most_recent_batch_is_reported(conn):
 
     assert row["documents"] == 1 and row["source_records"] == 7, (
         "the newest batch replaces the previous one; totals must not accumulate")
-    assert row["chunks_unchanged"] == 7
+
+
+def test_run_rows_carry_no_per_run_outcome_counts(conn):
+    """
+    The committed inventory must describe the corpus, not the last run.
+
+    `created` / `updated` / `unchanged` are properties of one execution: the same
+    corpus yields created=180 on a fresh database and unchanged=180 on the next
+    run. Committing them means the file reports itself stale after a re-run that
+    changed nothing, which is how this was found. Run history stays in
+    `normalisation_runs` and `evidence/*.json`.
+    """
+    offering_id = _offering_ids(conn)[0]
+    _record_batch(conn, offering_id, "legacy_corpus", [120])
+
+    row = next(r for r in fetch(conn)["runs"] if r["adapter"] == "legacy_corpus")
+
+    for volatile in ("chunks_created", "chunks_updated", "chunks_unchanged"):
+        assert volatile not in row, (
+            f"{volatile} is per-run state and must not reach the committed "
+            "inventory — it makes the file stale after an idempotent re-run")
+    assert {"slug", "adapter", "documents", "source_records"} <= set(row)
 
 
 def test_fetch_is_stable_across_repeated_calls(conn):

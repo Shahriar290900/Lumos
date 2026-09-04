@@ -90,10 +90,7 @@ def fetch(conn: psycopg.Connection) -> dict[str, Any]:
             SELECT o.slug, r.adapter,
                    max(r.ingestion_version)      AS ingestion_version,
                    count(*)                      AS documents,
-                   sum(r.source_records)         AS source_records,
-                   sum(r.chunks_created)         AS chunks_created,
-                   sum(r.chunks_updated)         AS chunks_updated,
-                   sum(r.chunks_unchanged)       AS chunks_unchanged
+                   sum(r.source_records)         AS source_records
             FROM normalisation_runs r
             JOIN latest l
               ON l.offering_id = r.offering_id
@@ -240,16 +237,23 @@ def render(data: dict[str, Any], audit: dict[str, Any], catalog: dict[str, Any] 
     if data["runs"]:
         add("### Normalisation runs")
         add("")
-        add("| Offering | Adapter | Version | Documents | Source records | Created | Updated | Unchanged |")
-        add("|---|---|---|---:|---:|---:|---:|---:|")
+        add("| Offering | Adapter | Version | Documents | Source records |")
+        add("|---|---|---|---:|---:|")
         for r in data["runs"]:
             add(f"| `{r['slug']}` | {r['adapter']} | {r['ingestion_version']} | "
-                f"{r['documents']} | {r['source_records']} | {r['chunks_created']} | "
-                f"{r['chunks_updated']} | {r['chunks_unchanged']} |")
+                f"{r['documents']} | {r['source_records']} |")
         add("")
         add("The most recent normalisation batch per adapter, summed across the "
-            "documents in that batch. A re-run over unchanged input reports only "
-            "`unchanged`, which is what makes normalisation safe to repeat.")
+            "documents in that batch.")
+        add("")
+        add("Per-run `created` / `updated` / `unchanged` counts are deliberately "
+            "**not** here. They describe what one run did, not what the corpus is, "
+            "so the same corpus renders differently depending on whether the "
+            "database was fresh — which would make this file report itself stale "
+            "after a re-run that changed nothing. Those counts live in "
+            "`evidence/*.json` and in the `normalisation_runs` table, where run "
+            "history belongs. Idempotency is asserted by the test suite and by CI, "
+            "not by a number in a document.")
         add("")
 
     # ── source documents ─────────────────────────────────────────────────────

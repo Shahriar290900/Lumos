@@ -90,7 +90,9 @@ The ~2.58 GB Edexcel corpus (2009–Jan 2026) described in the whitepaper remain
 | Pearson Edexcel PDFs | `permitted_private` | Private ingestion only. Not committed, not redistributed, cannot back a public offering. |
 | NCTB legacy JSONL | `unknown` | Blocks publication until BLOCK-008 is resolved. |
 
-Derived chunk text is licensed material in another form. It is retrieval context: the tutor returns generated explanations with citations, never reproduced source text, and no page image is served to a student.
+Derived chunk text is licensed material in another form. It is retrieval context: the tutor returns generated explanations with citations, never reproduced source text.
+
+**Amended 2026-09-04 (ADR-026).** The 18 Edexcel exam documents — question papers, mark schemes and examiner reports — are served as PDFs in the application. Pearson publishes these openly, restricting only the most recent twelve months to registered centres, and the 2024 May/June session is outside that window. ***Student Book 1* is never served** in any form: it is a commercial textbook, and it stays retrieval grounding only.
 
 ---
 

@@ -9,7 +9,7 @@ A goal is complete only when its acceptance criteria are met **and** the evidenc
 - [ ] LUMOS-001 Repository bootstrap: monorepo layout, tooling, lint, typecheck
 - [ ] LUMOS-002 Design system + brand tokens (dark magical academy: deep navy/black, warm gold)
 - [ ] LUMOS-003 Agent operating system (`.claude/` skills, agents, hooks, state files)
-- [x] **LUMOS-004 CI baseline + test harness** — evidence: `.github/workflows/ci.yml`, 124 tests, first GitHub Actions run green on `b722d17` (three jobs, every step)
+- [x] **LUMOS-004 CI baseline + test harness** — evidence: `.github/workflows/ci.yml`, 125 tests, first GitHub Actions run green on `b722d17` (three jobs, every step)
 
 ## Phase 0.5 — Curriculum and data foundation
 - [x] **LUMOS-004A Curriculum registry + coverage gates** — evidence: `packages/db/migrations/0001_curriculum_registry.up.sql`, 47 passing tests, `scripts/check_registry_consistency.py`, generated `CURRICULUM_INVENTORY.md`
@@ -17,8 +17,8 @@ A goal is complete only when its acceptance criteria are met **and** the evidenc
 - [x] **LUMOS-004B.1 Bootstrap fixes and model policy** — evidence below
 - [ ] **LUMOS-004C Corpus cleaning: Bangla repair, boundary repair, re-chunking** ← **NEXT GOAL**, in three sub-goals (ADR-025)
   - [ ] **LUMOS-004C.1** Legacy text repair: Bangla, English re-chunking, glyph and truncation repair
-  - [ ] **LUMOS-004C.2** Mark-scheme and examiner-report adapters, plus cross-document linking
-  - [ ] **LUMOS-004C.3** Textbook OCR, 225 pages
+  - [ ] **LUMOS-004C.2** Mark-scheme and examiner-report adapters, cross-document linking, and the **document delivery column** (ADR-026)
+  - [ ] **LUMOS-004C.3** Textbook OCR, 225 pages — *grounding only; never served (ADR-026)*
 - [ ] LUMOS-004D Licence and provenance registry
 - [!] LUMOS-004E Retrieval evaluation set per available corpus — *needs subject-teacher review*
 - [ ] **LUMOS-004F Model Gateway + mock provider + `gemma4:e4b`** — *registered here, not as 004D (ADR-024). Not blocked by BLOCK-005: the mock provider needs no credential*
@@ -121,7 +121,7 @@ Closing the gaps between the documented state and the real one, before 004C.
 | Goal-numbering conflict resolved | ADR-024 — 004D stays the licence registry, gateway becomes 004F |
 | 004C split recorded | ADR-025 |
 | Inventory is reproducible | **Defect found and fixed** — see below; 4 new tests, 3 of which fail against the previous generator |
-| Full suite passes | 124 tests against Neon |
+| Full suite passes | 125 tests against Neon |
 
 **Reproducibility defect found in `scripts/generate_inventory.py`.** The
 normalisation-runs table was irreproducible in two independent ways, and the

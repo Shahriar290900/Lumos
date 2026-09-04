@@ -3,7 +3,7 @@
 **Current phase:** Phase 0.5 — Curriculum and data foundation
 **Last completed goal:** LUMOS-004B.1 — Bootstrap fixes and model policy (2026-09-04)
 **Next goal:** LUMOS-004C.1 — Legacy text repair
-**Repository:** `github.com/Shahriar290900/Lumos` — **pushed**, 4 commits, CI green
+**Repository:** `github.com/Shahriar290900/Lumos` — **pushed**, 6 commits, CI green
 
 ## Environment — measured 2026-09-04
 
@@ -12,11 +12,11 @@ Recorded because the next goal's OCR stage is constrained by it, not as backgrou
 | | |
 |---|---|
 | Machine | MacBook Air 2017, Intel, no GPU, 8 GB RAM. Client and orchestrator, **never an inference host** |
-| Free disk | **1.4 GB** at time of writing, down from 3.2 GB. This is the binding constraint |
+| Free disk | **3.5 GB**, after reclaiming 2.1 GB of caches. Was 1.4 GB; still the tightest constraint |
 | Docker | **Not installed, and not viable** — Docker Desktop plus its VM image needs ~4 GB (ADR-023) |
 | Database | Neon `ap-southeast-1`, PostgreSQL **18.6**, pgvector **0.8.6**, unpooled endpoint |
 | Local Python | 3.12.2 in `.venv`. **CI runs 3.11.16** — a known, accepted divergence |
-| Suite runtime | 93 s against Neon · 3.9 s in CI. Roughly 24×, all network round trips |
+| Suite runtime | ~100 s against Neon · ~4 s in CI. Roughly 25×, all network round trips |
 | OCR toolchain | `pypdfium2` present (transitive via pdfplumber). **Tesseract not installed** — needed for 004C.3 |
 
 **Consequences for LUMOS-004C.3.** The 225-page textbook must be rendered and
@@ -37,6 +37,8 @@ path.
 
 **LUMOS-004B.1 Bootstrap fixes and model policy** — history pushed and CI green for the first time; `gemma4:e4b` recorded as the only generation model (ADR-022); Neon provisioned and the full gate verified against it (ADR-023); a reproducibility defect found and fixed in the inventory generator.
 
+**Decisions taken since (ADR-026)** — the 18 Edexcel exam PDFs will be served in the application; *Student Book 1* is never served and stays retrieval grounding only. This escalated BLOCK-003 (R2) onto the demo critical path, and needs a registry column that does not exist yet.
+
 ## Verified — 004B
 
 - **Canonical model** (`chunks`, `normalisation_runs`, `chunk_retrieval_context`, 3 enums) in migration 0002. Applied from empty, reverted, re-applied.
@@ -48,7 +50,7 @@ path.
 - **Provenance per chunk** (ADR-021): 165 `verbatim`, 83 `cleaned`, 15 `normalized`. Every non-verbatim chunk keeps `text_raw`; the schema refuses one that does not.
 - **Legacy traceability**: all 180 keep `legacy_chunk_id` and the complete original record in `legacy_metadata`.
 - **Three counts, three meanings** (ADR-020): audited / canonical / indexed. `canonical_chunk_count` is a view subquery, so it cannot be set by hand.
-- **124 tests pass** with `AI_PROVIDER=mock` and no model credential (120 at 004B, plus 4 inventory-determinism tests at 004B.1).
+- **125 tests pass** with `AI_PROVIDER=mock` and no model credential (120 at 004B, plus 5 inventory-reproducibility tests).
 - **Consistency gate extended** to chunk identity, key–document agreement, offering agreement and legacy reconciliation. Proved to fire on injected drift.
 - **No source text in any committed file**: evidence reports carry counts, checksums and structure only; test fixtures are synthetic.
 

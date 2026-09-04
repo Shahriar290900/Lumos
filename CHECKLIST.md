@@ -1,6 +1,6 @@
 # Lumos Checklist
 
-Last verified **2026-09-04** at commit `70b8e39`.
+Last verified **2026-09-04** at commit `c53befb`+.
 
 Nothing is ticked here on intention. A box is ticked when a command succeeded and
 the evidence is recorded in `GOALS.md`. Where this file and the code disagree,
@@ -11,7 +11,7 @@ the code wins — say so rather than editing either quietly.
 ## What works today — verified end to end
 
 ### Infrastructure
-- [x] Repository restored from bundle, **5 commits, pushed** to `github.com/Shahriar290900/Lumos`
+- [x] Repository restored from bundle, **6 commits, pushed** to `github.com/Shahriar290900/Lumos`
 - [x] **CI green** — 3 jobs, every step, first run ever on `b722d17` and again on `70b8e39`
 - [x] Python environment — `.venv` on 3.12.2 locally, **3.11.16 in CI** (accepted divergence, ADR-023)
 - [x] **Neon** — `ap-southeast-1`, PostgreSQL 18.6, pgvector 0.8.6, unpooled endpoint
@@ -43,7 +43,7 @@ the code wins — say so rather than editing either quietly.
 - [x] Full suite passes with `AI_PROVIDER=mock` and no model credential
 
 ### Test surface
-- [x] **124 tests** — identical count locally and in CI
+- [x] **125 tests** — identical count locally and in CI
 - [x] Runtime: 99 s against Neon, 4.0 s in CI
 
 ---
@@ -55,6 +55,7 @@ the code wins — say so rather than editing either quietly.
 - [ ] **No web application.** `apps/web/` does not exist. `apps/api/` serves the registry and a `/tutor/ask` route that passes the coverage gate and then returns 501 — deliberately, to prove the gate runs before retrieval.
 - [ ] **No authentication.** No user model, no sessions.
 - [ ] Mark schemes, examiner reports and the 225-page textbook are catalogued and routed but **not ingested**.
+- [ ] **No PDF viewer and nowhere to serve from.** ADR-026 makes the exam PDFs servable, but the registry cannot yet distinguish servable from grounding-only, and there is no R2 bucket.
 - [ ] Bangla corruption in 73 ICT records is **measured, not repaired**. 66 records also carry broken word splits.
 - [ ] English chunks remain whole textbook units of ~2,000 tokens.
 - [ ] **Tesseract is not installed** — required by LUMOS-004C.3.
@@ -69,8 +70,8 @@ the code wins — say so rather than editing either quietly.
 
 ### Phase 0.5 — curriculum and data foundation
 - [ ] **LUMOS-004C.1** Legacy text repair — Bangla, English re-chunking, glyph and truncation repair ← **NEXT**
-- [ ] **LUMOS-004C.2** Mark-scheme and examiner-report adapters, plus cross-document linking
-- [ ] **LUMOS-004C.3** Textbook OCR, 225 pages
+- [ ] **LUMOS-004C.2** Mark-scheme and examiner-report adapters, cross-document linking, and the document delivery column (ADR-026)
+- [ ] **LUMOS-004C.3** Textbook OCR, 225 pages — *grounding only; never served (ADR-026)*
 - [ ] LUMOS-004D Licence and provenance registry — *needs BLOCK-008*
 - [!] LUMOS-004E Retrieval evaluation set — *needs subject-teacher review*
 - [ ] LUMOS-004F Model Gateway + mock provider + `gemma4:e4b` — *not blocked; the mock needs no credential*
@@ -118,14 +119,15 @@ Nothing here can be resolved by the engineering agent alone.
 - [x] Whitepaper corpus position (BLOCK-001) — **decided**
 - [x] Neon project (BLOCK-002) — **provisioned**; production branch still open
 - [x] Model choice and hosting (BLOCK-005) — **`gemma4:e4b`, remote** (ADR-022)
+- [x] PDF delivery (BLOCK-008, competition threshold) — **exam PDFs served, textbook never served** (ADR-026)
+- [ ] **Cloudflare zone and R2 bucket (BLOCK-003) — now on the demo critical path**, because the exam PDFs need somewhere to be served from
+- [ ] Whether serving extends beyond the competition to a public or commercial launch (BLOCK-008)
 - [ ] **Endpoint, budget ceiling and shutdown procedure** (BLOCK-005) — *the most likely way this project overspends*
 - [ ] Verify the exact Ollama tag with `ollama show gemma4:e4b` (BLOCK-005)
 - [ ] Locate the claimed 2.58 GB Edexcel corpus, or confirm it does not exist (BLOCK-001A)
-- [ ] Cloudflare zone, R2 bucket, domain (BLOCK-003)
 - [ ] Render services (BLOCK-004)
 - [ ] Auth provider (BLOCK-006)
 - [ ] Under-18 data policy (BLOCK-007) — *most users are minors*
-- [ ] Source licensing: private demo, competition, or commercial (BLOCK-008)
 - [ ] Locate the source PDFs behind the ICT corpus, if they exist (BLOCK-009)
 
 ---

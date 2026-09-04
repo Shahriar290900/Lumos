@@ -35,7 +35,9 @@ Hybrid lexical + semantic. Metadata filter **before** ranking, at the SQL bounda
 ## Model policy — non-negotiable
 **`gemma4:e4b` is the only generation model Lumos uses.** `google/gemma-4-E4B-it` (Apache-2.0) on Hugging Face; `gemma4:e4b` on Ollama. No Qwen, no Gemini, no GPT, no fallback chain to a second generation model. If it is unavailable, fail loudly — never answer from something else. The legacy `Qwen2.5-VL-7B` / `gemma-4-31b-it` stack and the whitepaper §5.10 Qwen/DeepSeek stack are superseded; where those names appear in `RECONNAISSANCE_REPORT.md` they are a dated record of the legacy system, not a plan.
 
-Two exemptions, because a decoder LLM cannot do these jobs: `BAAI/bge-m3` (multilingual embeddings, 1024-dim) and `BAAI/bge-reranker-v2-m3` (cross-encoder reranking). Do not "simplify" them away. Vision is Phase 2 and uses gemma4:e4b's own multimodal capability.
+Three exemptions, because a decoder LLM cannot do these jobs: `BAAI/bge-m3` (multilingual embeddings, 1024-dim), `BAAI/bge-reranker-v2-m3` (cross-encoder reranking), and a small document-reading model where gemma4:e4b's own multimodal capability proves insufficient for OCR or page understanding. Do not "simplify" the first two away. The third is bounded: such a model **reads** documents and never **writes** an answer to a student — a Qwen-VL-class or dedicated OCR model in the 0.5–4B range is permitted for extraction only. System-wide, models stay within roughly 0–4B parameters.
+
+**Serving licensed PDFs (ADR-026).** The 18 Edexcel exam documents are served in-app. ***Student Book 1* is never served** — grounding only, no page, no image, no extract. The registry cannot express this distinction yet, so write no serving code until the delivery column exists (LUMOS-004C.2).
 
 **Inference is always remote.** The development machine is a 2017 MacBook Air with no GPU and 8 GB RAM: a client and orchestrator, never an inference host. The gateway ships a deterministic mock provider so the suite runs with an empty `.env`, no credential and no GPU. Every test must pass with `AI_PROVIDER=mock`.
 

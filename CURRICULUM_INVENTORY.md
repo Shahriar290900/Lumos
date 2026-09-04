@@ -78,15 +78,17 @@ These are **audited** counts of legacy source records, not indexed chunks. `inde
 
 ### Normalisation runs
 
-| Offering | Adapter | Version | Documents | Source records | Created | Updated | Unchanged |
-|---|---|---|---:|---:|---:|---:|---:|
-| `edexcel-ial/physics/a2` | legacy_corpus | 004b.1 | 1 | 17 | 0 | 0 | 17 |
-| `edexcel-ial/physics/a2` | past_paper | 004b.1 | 3 | 42 | 42 | 0 | 0 |
-| `edexcel-ial/physics/international-as` | past_paper | 004b.1 | 3 | 41 | 41 | 0 | 0 |
-| `nctb/english/ssc` | legacy_corpus | 004b.1 | 1 | 43 | 0 | 0 | 43 |
-| `nctb/ict/ssc` | legacy_corpus | 004b.1 | 1 | 120 | 0 | 0 | 120 |
+| Offering | Adapter | Version | Documents | Source records |
+|---|---|---|---:|---:|
+| `edexcel-ial/physics/a2` | legacy_corpus | 004b.1 | 1 | 17 |
+| `edexcel-ial/physics/a2` | past_paper | 004b.1 | 3 | 42 |
+| `edexcel-ial/physics/international-as` | past_paper | 004b.1 | 3 | 41 |
+| `nctb/english/ssc` | legacy_corpus | 004b.1 | 1 | 43 |
+| `nctb/ict/ssc` | legacy_corpus | 004b.1 | 1 | 120 |
 
-The most recent normalisation batch per adapter, summed across the documents in that batch. A re-run over unchanged input reports only `unchanged`, which is what makes normalisation safe to repeat.
+The most recent normalisation batch per adapter, summed across the documents in that batch.
+
+Per-run `created` / `updated` / `unchanged` counts are deliberately **not** here. They describe what one run did, not what the corpus is, so the same corpus renders differently depending on whether the database was fresh — which would make this file report itself stale after a re-run that changed nothing. Those counts live in `evidence/*.json` and in the `normalisation_runs` table, where run history belongs. Idempotency is asserted by the test suite and by CI, not by a number in a document.
 
 ## Registered source documents
 

@@ -74,13 +74,15 @@ Migrations and seed proved provider-agnostic exactly as predicted. **No applicat
 
 ## BLOCK-003 — Cloudflare zone and R2 bucket not provisioned
 
-**Severity:** Medium · **Status:** OPEN
+**Severity:** High · **Status:** OPEN
 
-No zone, no R2 bucket, no domain decision. Needed for asset delivery, curriculum page images and the 3D homepage assets.
+No zone, no R2 bucket, no domain decision. Needed for asset delivery, the 3D homepage assets, and — since ADR-026 — **serving the 18 Edexcel exam PDFs in the application**.
+
+**Escalated 2026-09-04.** This was Medium and off the critical path. The decision to serve exam PDFs from Lumos's own storage rather than linking to Pearson's puts it **on the demo path**: without object storage there is nowhere to serve them from. Roughly 125 MB of PDFs, of which the 9 AS-scope documents are the demo subset.
 
 **Needed:** domain name decision, zone, R2 bucket, and a scoped API token (least privilege — not a global key).
 
-**Blocks:** LUMOS-017, LUMOS-023.
+**Blocks:** LUMOS-017, LUMOS-023, and now the in-app PDF viewer.
 
 ---
 
@@ -152,9 +154,19 @@ The corpus derives from NCTB textbooks and Pearson Edexcel material. No licence,
 
 **Update 2026-09-04:** the registry now records `licence_status` per offering and per source document, and the schema refuses to publish an offering whose licence is `unknown` or `restricted`. The Edexcel material is recorded as `permitted_private` on the owner's statement that it is for private ingestion; the NCTB legacy corpora remain `unknown`. Nothing is published, so nothing currently depends on this — but nothing can be.
 
-**Needed:** a decision on whether the current corpus may back a public demo, a competition submission, or a commercial launch — three different thresholds — and, for the Edexcel material, whether `permitted_private` can ever become `permitted_public`.
+**Update 2026-09-04 — the competition threshold is decided (ADR-026).** The owner has decided that the **18 exam documents are served as PDFs in the application**, and that ***Student Book 1* is never served** and remains retrieval grounding only.
 
-**Blocks:** publishing any corpus; LUMOS-004D.
+Two facts informed that choice. Pearson publishes past papers, mark schemes and examiner reports openly on `qualifications.pearson.com`, restricting only the most recent twelve months to registered centres — the corpus is the 2024 May/June session, outside that window. *Student Book 1* is a commercial textbook rather than free courseware, which is why it is treated differently rather than the same.
+
+**Needed, still.**
+
+- Whether this extends past the competition demo to a public launch or a commercial one. Those are two further thresholds and neither is decided.
+- Whether the exam documents' `licence_status` should move from `permitted_private` to `permitted_public`, or whether a separate delivery column is the better model. Currently the textbook and the exam papers are indistinguishable in the registry, and that distinction is now load-bearing.
+- The NCTB legacy corpora remain `unknown` and are untouched by this decision.
+
+**The alternative left on the table:** linking to Pearson's own hosted URLs distributes nothing, needs no storage, and is the easier position to defend. Declined for offline support and viewer control, but it remains the fallback if licensing is ever challenged.
+
+**Blocks:** LUMOS-004D. No longer blocks the competition demo.
 
 ---
 
