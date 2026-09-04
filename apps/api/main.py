@@ -139,15 +139,36 @@ def health() -> dict[str, Any]:
     # the failure this project exists to avoid, so it is surfaced here rather
     # than left for someone to infer from configuration.
     try:
-        from services.models import ModelGateway
+        from services.models import CapabilityUnavailable, ModelGateway
         gateway = ModelGateway.from_env()
         out["model_provider"] = gateway.provider_name
-        out["generation"] = "mock" if gateway.is_mock else "live"
+        out["chat_model"] = gateway.config.chat_model
+
+        # Report whether generation *works*, not which provider is configured.
+        #
+        # Naming the provider was the first version and it lied: with
+        # AI_PROVIDER=huggingface the endpoint reported "generation: live" while
+        # every request failed, because no provider serves gemma4:e4b. A status
+        # field that says a subsystem is up when it is down is worse than no
+        # status field, and this project exists to not do that.
         if gateway.is_mock:
-            out["status"] = "degraded"
+            out["generation"] = "mock"
             out["generation_note"] = (
-                "No generation model is configured, so the tutor cannot answer. "
-                "Retrieval and citations are real; explanations are not.")
+                "Deterministic mock. Retrieval and citations are real; the "
+                "explanation is not a tutoring answer.")
+            out["status"] = "degraded"
+        else:
+            try:
+                gateway.generate("ping", max_tokens=1)
+                out["generation"] = "live"
+            except CapabilityUnavailable as exc:
+                out["generation"] = "unavailable"
+                out["generation_note"] = str(exc)[:220]
+                out["status"] = "degraded"
+            except Exception as exc:  # noqa: BLE001
+                out["generation"] = "error"
+                out["generation_note"] = f"{type(exc).__name__}"
+                out["status"] = "degraded"
     except Exception as exc:  # noqa: BLE001
         out["model_provider"] = "misconfigured"
         out["model_error"] = f"{type(exc).__name__}: {exc}"[:200]

@@ -220,9 +220,10 @@ let OFFERINGS = [];
 async function boot(){
   try{
     const h = await (await fetch("/health")).json();
-    const gen = h.generation === "live"
-      ? `<b>${esc(h.model_provider)}</b> · live`
-      : `<b>mock</b> · no generation model`;
+    const label = {live:"generation live", mock:"mocked explanation",
+                   unavailable:"no generation model", error:"generation error"}[h.generation]
+                  || esc(h.generation);
+    const gen = `<b>${esc(h.model_provider)}</b> · ${label}`;
     $("#state").innerHTML = `db ${esc(h.database)} · ${gen}`;
     $("#foot").textContent = `API ${h.version} · database ${h.database} · generation ${h.generation}`;
   }catch{ $("#state").textContent = "api unreachable"; }
