@@ -23,7 +23,7 @@ from dataclasses import dataclass
 
 NAV = (
     ("/", "Home"),
-    ("/tutor", "AI Tutor"),
+    ("/login", "AI Tutor"),
     ("/curriculum", "Curriculum"),
     ("/sources", "Sources"),
     ("/how", "How it works"),
@@ -119,7 +119,7 @@ HOME = Page(
       citation resolves to a real page in a real document, and insufficient
       evidence produces a stated limitation rather than a confident guess.</p>
     <div class="cta">
-      <a class="btn gold" href="/tutor">Ask the tutor</a>
+      <a class="btn gold" href="/login">Ask the tutor</a>
       <a class="btn ghost" href="/how">How it works</a>
     </div>
     <p class="hint">Move your cursor &middot; <span id="availCount">&mdash;</span></p>
@@ -157,31 +157,105 @@ HOME = Page(
 </main>
 """)
 
-TUTOR = Page(
-    path="/tutor",
-    title="AI Tutor — Lumos",
-    description="Ask a curriculum question and get an answer with citations that resolve.",
-    scripts='<script type="module" src="/static/js/tutor.js"></script>',
+LOGIN = Page(
+    path="/login",
+    title="Student Login — Lumos",
+    description="Log in to access your AI Tutor.",
+    scripts='<script type="module" src="/static/js/login.js"></script>',
+    body="""
+<main id="main">
+  <section class="auth-card-wrap">
+    <div class="auth-card card">
+      <div class="ico" style="text-align:center; font-size:42px; margin-bottom:10px;">&#10022;</div>
+      <h2 style="text-align:center">Welcome back</h2>
+      <p class="sub" style="text-align:center; max-width:100%">Log in to continue your learning journey.</p>
+      
+      <div style="display:flex; flex-direction:column; gap:16px; margin-top:30px;">
+        <input type="text" placeholder="Student ID or Email" aria-label="Student ID">
+        <input type="password" placeholder="Password" aria-label="Password">
+        <button id="loginBtn" class="btn gold" style="width:100%; justify-content:center; margin-top:10px">Sign In</button>
+      </div>
+      
+      <div style="text-align:center; margin-top:20px;">
+        <p class="meta" style="cursor:pointer" id="demoLogin">Or click here for quick demo login</p>
+      </div>
+    </div>
+  </section>
+</main>
+""")
+
+ONBOARDING = Page(
+    path="/onboarding",
+    title="Setup your Curriculum — Lumos",
+    description="Select your subjects to personalize your tutor.",
+    scripts='<script type="module" src="/static/js/onboarding.js"></script>',
     body="""
 <main id="main">
   <div class="page-head">
-    <p class="kicker">Ask</p>
-    <h1>AI Tutor</h1>
-    <p class="sub" style="margin-top:10px">Answers come only from the declared
-      corpus. Every citation resolves to a passage retrieved for your question,
-      and insufficient evidence produces a stated limitation rather than a guess.</p>
+    <p class="kicker">Onboarding</p>
+    <h1>Personalize your Tutor</h1>
+    <p class="sub" style="margin-top:10px">Select the exact curriculum and subject you are studying so Lumos can restrict its knowledge base strictly to what you need.</p>
   </div>
   <section>
-    <div class="ask">
-      <select id="offering" aria-label="Subject"><option>loading&hellip;</option></select>
-      <input id="q" type="text" placeholder="How do I calculate gravitational potential energy?"
-             aria-label="Your question">
-      <button id="go" class="gold">Cast Lumos</button>
+    <div class="auth-card card" style="max-width: 600px; margin: 0 auto;">
+      <h3>Select your subject</h3>
+      <p style="margin-bottom:20px; font-size:14px; color:var(--dim)">The tutor will only pull answers from the verified materials for this specific curriculum.</p>
+      <select id="offering" aria-label="Subject" style="width:100%; margin-bottom: 20px;"><option>loading&hellip;</option></select>
+      <button id="startTutor" class="btn gold" style="width:100%">Start Learning</button>
     </div>
-    <div class="chips" id="examples"></div>
-    <div id="answer"></div>
   </section>
 </main>
+""")
+
+CHAT = Page(
+    path="/chat",
+    title="AI Tutor Chat — Lumos",
+    description="Ask questions and analyze past papers side-by-side.",
+    scripts='<script type="module" src="/static/js/chat.js"></script>',
+    body="""
+<div class="split-layout">
+  <!-- Left Pane: Document Viewer -->
+  <div class="pane left-pane">
+    <div class="pane-header">
+      <span class="pill yes">A-Level Physics (2024)</span>
+      <span style="font-size:12px; color:var(--dim); margin-left:auto">Paper 4 · Mark Scheme</span>
+    </div>
+    <div class="doc-viewer" id="docViewer">
+      <div class="mock-doc-placeholder">
+        <h3>Question 3: Momentum</h3>
+        <p><b>(a)</b> State the principle of conservation of momentum. [2]</p>
+        <div class="mark-scheme-line"><i>Total momentum before = total momentum after (1)</i></div>
+        <div class="mark-scheme-line"><i>Provided no external forces act (1)</i></div>
+        <br>
+        <p><b>(b)</b> A car of mass 1200kg travelling at 15m/s collides with...</p>
+        <div class="mark-scheme-line"><i>Use of m1v1 + m2v2 = (m1+m2)v (1)</i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Pane: Chatbot -->
+  <div class="pane right-pane">
+    <div class="chat-history" id="chatHistory">
+      <div class="msg tutor">
+        <div class="bubble">
+          Hello! I am Lumos. I see you are looking at the Physics Paper 4 mark scheme on Momentum. How can I help you understand these concepts?
+        </div>
+      </div>
+    </div>
+    
+    <div class="chat-input-area">
+      <div id="attachmentPill" class="attachment-pill" style="display:none">
+        <span class="ico">&#128206;</span> <span id="attachmentName">doc.pdf</span>
+        <button id="removeAttachment" class="close-btn">&times;</button>
+      </div>
+      <div class="input-row">
+        <button id="attachBtn" class="attach-btn" title="Upload document">&#128206;</button>
+        <input id="q" type="text" placeholder="Ask about this paper..." aria-label="Your question">
+        <button id="go" class="gold send-btn">&#10140;</button>
+      </div>
+    </div>
+  </div>
+</div>
 """)
 
 CURRICULUM = Page(
@@ -295,4 +369,4 @@ HOW = Page(
 </main>
 """)
 
-ALL = (HOME, TUTOR, CURRICULUM, SOURCES, HOW)
+ALL = (HOME, LOGIN, ONBOARDING, CHAT, CURRICULUM, SOURCES, HOW)

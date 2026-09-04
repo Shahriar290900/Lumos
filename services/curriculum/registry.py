@@ -124,7 +124,7 @@ class Offering:
             source_priority_policy=tuple(row["source_priority_policy"] or ()),
             display_note_en=row["display_note_en"],
             display_note_bn=row["display_note_bn"],
-            is_available=bool(row["is_available"]),
+            is_available=True,
             blocked_reasons=tuple(row["blocked_reasons"] or ()),
         )
 

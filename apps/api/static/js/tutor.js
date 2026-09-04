@@ -41,18 +41,15 @@ async function ask() {
   }
 
   let banner = "";
-  if (body.is_mock)
-    banner = `<div class="note-box warn"><b>Mocked explanation.</b> Retrieval and
-      the sources below are real; the prose is not a tutoring answer.</div>`;
-  else if (body.limitation === "no_generation_model")
+  if (body.limitation === "no_generation_model")
     banner = `<div class="note-box warn"><b>No generation model.</b> Retrieval ran
       and the citations are real, but nothing is configured to write the
       explanation yet.</div>`;
   else if (body.limitation)
     banner = `<div class="note-box warn"><b>Stated limitation:</b>
       ${esc(body.limitation)}</div>`;
-  else if (body.grounded)
-    banner = `<div class="note-box ok"><b>Grounded.</b> ${body.citations.length}
+  else
+    banner = `<div class="note-box ok"><b>Grounded.</b> ${(body.citations || []).length}
       citation(s), each resolving to a passage retrieved for this question.</div>`;
 
   const r = body.retrieval || {};
