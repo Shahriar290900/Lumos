@@ -21,7 +21,7 @@ from typing import Any, Iterator
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from services.curriculum.registry import (
     CurriculumRegistry,
@@ -68,12 +68,40 @@ def get_registry() -> Iterator[CurriculumRegistry]:
 # ─────────────────────────────────────────────────────────────────────────────
 
 class TutorRequest(BaseModel):
+    """
+    Name an offering either by its slug or by its code triple.
+
+    Both exist because the registry has two identifier systems and `GET
+    /curriculum` publishes the first. The slug `edexcel-ial/physics/a2` carries
+    level `a2`, while the stored level code is `IAL_A2`; no normalisation rule
+    bridges that, because the slug is a separate identity rather than a
+    lower-cased view of the codes.
+
+    Accepting only the triple meant a client that read `/curriculum` and posted
+    the segments it published got 404 `unknown_offering` — the API denying the
+    existence of an offering it had just listed. Slug is therefore the preferred
+    input, and the triple is kept because it is what the seed and the tests
+    already speak.
+    """
+
     query: str = Field(min_length=1, max_length=4000)
-    curriculum: str = Field(min_length=1, max_length=32)
-    subject: str = Field(min_length=1, max_length=32)
-    level: str = Field(min_length=1, max_length=32)
+    slug: str | None = Field(default=None, max_length=128)
+    curriculum: str | None = Field(default=None, max_length=32)
+    subject: str | None = Field(default=None, max_length=32)
+    level: str | None = Field(default=None, max_length=32)
     syllabus_version: str | None = Field(default=None, max_length=64)
     language: str = Field(default="en", pattern="^[a-z]{2}$")
+
+    @model_validator(mode="after")
+    def _needs_one_identifier(self) -> "TutorRequest":
+        if self.slug:
+            return self
+        missing = [f for f in ("curriculum", "subject", "level") if not getattr(self, f)]
+        if missing:
+            raise ValueError(
+                "name the offering either by 'slug' (as GET /curriculum returns it) "
+                f"or by curriculum + subject + level; missing: {', '.join(missing)}")
+        return self
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -170,6 +198,7 @@ def tutor_ask(
     """
     try:
         offering = registry.require_available(
+            slug=req.slug,
             curriculum=req.curriculum, subject=req.subject,
             level=req.level, syllabus_version=req.syllabus_version,
         )

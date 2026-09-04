@@ -23,6 +23,16 @@ import psycopg
 from psycopg.rows import dict_row
 
 # Columns the view exposes, in the order the API returns them.
+# How a request's identifier is matched against a stored code.
+#
+# Case is folded, and hyphen and underscore are treated as one separator, so the
+# slug segments `GET /curriculum` publishes (`edexcel-ial`, `international-as`)
+# resolve to the codes the registry stores (`EDEXCEL_IAL`, `INTERNATIONAL_AS`).
+# Defined once so every clause of every lookup normalises identically — two
+# copies of a matching rule are two rules, and the one that drifts is the one
+# nobody tested.
+_CODE_MATCH = "upper(replace({column}, '-', '_')) = upper(replace(%s, '-', '_'))"
+
 _SELECT = """
     offering_id, slug,
     curriculum_code, curriculum_name,
@@ -173,16 +183,29 @@ class CurriculumRegistry:
 
         Codes are matched case-insensitively, because a student-facing client
         should not be able to cause a 404 with `physics` instead of `PHYSICS`.
+
+        Hyphens and underscores are also treated as the same separator, for the
+        same reason and a sharper one: `GET /curriculum` publishes the slug
+        `edexcel-ial/physics/international-as`, while the stored codes are
+        `EDEXCEL_IAL` / `INTERNATIONAL_AS`. Feeding those published segments
+        straight back to this method used to raise `OfferingNotFound`, so a
+        client that did exactly what the API told it would be informed that the
+        one offering in demo scope does not exist. A 404 that contradicts the
+        listing endpoint is worse than a strict match is valuable.
+
+        Widening the match cannot make a lookup ambiguous on its own: no stored
+        code contains a hyphen, and the multi-row guard below still catches any
+        genuine ambiguity.
         """
         sql = f"""
             SELECT {_SELECT} FROM curriculum_availability
-            WHERE upper(curriculum_code) = upper(%s)
-              AND upper(subject_code)    = upper(%s)
-              AND upper(level_code)      = upper(%s)
+            WHERE {_CODE_MATCH.format(column='curriculum_code')}
+              AND {_CODE_MATCH.format(column='subject_code')}
+              AND {_CODE_MATCH.format(column='level_code')}
         """
         params: list[Any] = [curriculum, subject, level]
         if syllabus_version is not None:
-            sql += " AND upper(syllabus_version_code) = upper(%s)"
+            sql += f" AND {_CODE_MATCH.format(column='syllabus_version_code')}"
             params.append(syllabus_version)
         with self._conn.cursor(row_factory=dict_row) as cur:
             cur.execute(sql, params)
@@ -203,7 +226,9 @@ class CurriculumRegistry:
 
     # ── the gate ─────────────────────────────────────────────────────────────
 
-    def require_available(self, *, curriculum: str, subject: str, level: str,
+    def require_available(self, *, slug: str | None = None,
+                          curriculum: str | None = None, subject: str | None = None,
+                          level: str | None = None,
                           syllabus_version: str | None = None) -> Offering:
         """
         Resolve an offering and refuse it unless the registry says it is available.
@@ -211,12 +236,24 @@ class CurriculumRegistry:
         Call this before retrieval. It raises rather than returning a flag, so a
         forgotten `if` cannot become an ungrounded answer.
 
+        Name the offering by `slug` — the identifier `GET /curriculum` publishes —
+        or by the `curriculum` / `subject` / `level` code triple. Slug is
+        preferred: it is what a client that read the listing actually holds, and
+        it is not derivable from the codes (`edexcel-ial/physics/a2` against a
+        stored level code of `IAL_A2`).
+
         Raises:
             OfferingNotFound:    nothing matches those identifiers
             OfferingUnavailable: it exists but is not available, with reasons
         """
-        offering = self.resolve(curriculum=curriculum, subject=subject,
-                                level=level, syllabus_version=syllabus_version)
+        if slug:
+            offering = self.get_by_slug(slug)
+        else:
+            if not (curriculum and subject and level):
+                raise OfferingNotFound(
+                    "name the offering by slug, or by curriculum + subject + level")
+            offering = self.resolve(curriculum=curriculum, subject=subject,
+                                    level=level, syllabus_version=syllabus_version)
         if not offering.is_available:
             raise OfferingUnavailable(
                 slug=offering.slug,

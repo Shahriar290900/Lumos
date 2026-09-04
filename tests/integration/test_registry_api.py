@@ -354,3 +354,64 @@ def test_tutor_404s_for_an_unknown_subject(client):
 def test_tutor_rejects_a_malformed_request(client):
     assert client.post("/tutor/ask", json={"query": "", "curriculum": "NCTB",
                                            "subject": "ICT", "level": "SSC"}).status_code == 422
+
+
+def test_the_slug_the_listing_publishes_resolves_at_the_tutor_route(client):
+    """
+    Every offering must be reachable using the identifiers `/curriculum` prints.
+
+    Found by driving the running API. `GET /curriculum` publishes the slug
+    `edexcel-ial/physics/international-as`, but the stored codes are
+    `EDEXCEL_IAL` / `INTERNATIONAL_AS`, and the resolver folded case without
+    folding the separator. Posting the published segments back returned 404
+    `unknown_offering` — the API telling a client that the one offering in demo
+    scope does not exist, immediately after listing it.
+
+    A 404 that contradicts the listing endpoint is a worse failure than a strict
+    match is a benefit, so the resolver now treats `-` and `_` as one separator.
+    """
+    offerings = client.get("/curriculum").json()["offerings"]
+    assert offerings
+
+    for o in offerings:
+        r = client.post("/tutor/ask", json={"query": "test", "slug": o["slug"]})
+        assert r.status_code != 404, (
+            f"slug {o['slug']!r} is published by /curriculum but does not "
+            f"resolve at /tutor/ask")
+        # Nothing is indexed, so the correct answer is 'unavailable', never an answer.
+        assert r.status_code == 409
+        assert r.json()["detail"]["slug"] == o["slug"]
+
+
+def test_identifier_matching_folds_case_and_separator_together(client):
+    """The same offering, named four ways a real client might name it."""
+    forms = [
+        ("edexcel-ial", "physics", "international-as"),   # as /curriculum prints it
+        ("EDEXCEL_IAL", "PHYSICS", "INTERNATIONAL_AS"),   # as the registry stores it
+        ("edexcel_ial", "physics", "international_as"),   # lowercase, underscores
+        ("Edexcel-IAL", "Physics", "International_AS"),   # mixed, as a human types it
+    ]
+    slugs = set()
+    for curriculum, subject, level in forms:
+        r = client.post("/tutor/ask", json={
+            "query": "test", "curriculum": curriculum,
+            "subject": subject, "level": level})
+        assert r.status_code == 409, f"{curriculum}/{subject}/{level} → {r.status_code}"
+        slugs.add(r.json()["detail"]["slug"])
+
+    assert slugs == {"edexcel-ial/physics/international-as"}, (
+        f"the four spellings resolved to {slugs}, not to one offering")
+
+
+def test_widening_the_match_did_not_make_unknown_subjects_resolve(client):
+    """Folding separators must not turn a real 404 into a false match."""
+    for curriculum, subject, level in [
+        ("nctb", "astrology", "ssc"),
+        ("nctb-fake", "ict", "ssc"),
+        ("edexcel-ial", "physics", "international-gcse"),
+    ]:
+        r = client.post("/tutor/ask", json={
+            "query": "test", "curriculum": curriculum,
+            "subject": subject, "level": level})
+        assert r.status_code == 404, f"{curriculum}/{subject}/{level} should not resolve"
+        assert r.json()["detail"]["error"] == "unknown_offering"
