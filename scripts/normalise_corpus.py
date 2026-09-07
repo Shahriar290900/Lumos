@@ -50,6 +50,9 @@ from services.ingestion.canonical import (  # noqa: E402
     INGESTION_VERSION, ChunkWriter, record_run,
 )
 from services.ingestion.legacy_adapter import normalise_legacy_corpus  # noqa: E402
+from services.ingestion.mark_scheme import (  # noqa: E402
+    answers_to_chunks, parse_mark_scheme,
+)
 from services.ingestion.past_paper import (  # noqa: E402
     extract_pages, parse_questions, questions_to_chunks,
 )
@@ -317,10 +320,105 @@ def run_papers(conn: psycopg.Connection, sources_root: Path,
 
 # ─────────────────────────────────────────────────────────────────────────────
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# mark schemes
+# ─────────────────────────────────────────────────────────────────────────────
+
+def run_mark_schemes(conn: psycopg.Connection, sources_root: Path,
+                     dry_run: bool) -> tuple[dict[str, Any], list[str]]:
+    """
+    Mark schemes into canonical chunks.
+
+    These are what make the tutor able to *teach* rather than only quote
+    questions. A question paper poses a problem; the mark scheme carries the
+    method, the accepted answers, and — in Section A — an explanation of why
+    each wrong option is wrong. That last part is the most directly pedagogical
+    text in the whole corpus.
+
+    No OCR: every mark scheme has a clean text layer.
+    """
+    failures: list[str] = []
+    per_document: dict[str, dict[str, Any]] = {}
+    writer = ChunkWriter(conn)
+    total_answers = 0
+    total_distractors = 0
+
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            """
+            SELECT sd.id::text AS document_id, sd.offering_id::text AS offering_id,
+                   sd.filename, sd.sha256, sd.paper_code, o.slug
+            FROM source_documents sd
+            JOIN subject_offerings o ON o.id = sd.offering_id
+            WHERE sd.document_type = 'mark_scheme'
+            ORDER BY sd.paper_code
+            """)
+        documents = [dict(r) for r in cur.fetchall()]
+
+    if not documents:
+        failures.append("no mark schemes are registered")
+        return {"adapter": "mark_scheme", "documents": 0}, failures
+
+    for doc in documents:
+        matches = list(sources_root.rglob(doc["filename"]))
+        if not matches:
+            failures.append(f"{doc['filename']} is registered but not on disk")
+            continue
+
+        answers = parse_mark_scheme(extract_pages(matches[0]))
+        if not answers:
+            failures.append(f"{doc['paper_code']}: no answers parsed")
+            continue
+
+        chunks = answers_to_chunks(
+            answers, source_document_id=doc["document_id"],
+            offering_id=doc["offering_id"], document_sha256=doc["sha256"],
+            paper_code=doc["paper_code"])
+
+        result = writer.write(chunks) if not dry_run else None
+        if not dry_run:
+            record_run(conn, offering_id=doc["offering_id"], adapter="mark_scheme",
+                       source_records=len(answers), result=result)
+
+        strategies: dict[str, int] = {}
+        for a in answers:
+            strategies[a.strategy] = strategies.get(a.strategy, 0) + 1
+        distractors = sum(len(a.distractors) for a in answers)
+        total_answers += len(answers)
+        total_distractors += distractors
+
+        per_document[doc["paper_code"] or doc["filename"]] = {
+            "offering": doc["slug"],
+            "answers": len(answers),
+            "by_strategy": strategies,
+            "distractor_explanations": distractors,
+            "created": result.created if result else None,
+            "unchanged": result.unchanged if result else None,
+        }
+
+    if not dry_run:
+        conn.commit()
+
+    payload = {
+        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "adapter": "mark_scheme",
+        "ingestion_version": INGESTION_VERSION,
+        "dry_run": dry_run,
+        "note": ("Counts and structure only. No mark-scheme text appears in this "
+                 "file."),
+        "documents": len(per_document),
+        "answers": total_answers,
+        "distractor_explanations": total_distractors,
+        "by_document": per_document,
+    }
+    return payload, failures
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("adapter", choices=["legacy", "papers"])
+    ap.add_argument("adapter", choices=["legacy", "papers", "mark-schemes"])
     ap.add_argument("--corpus-root", type=Path,
                     default=Path.home() / "recon/Shikhbo-Local-App/raw_data",
                     help="directory of legacy JSONL files")
@@ -345,6 +443,8 @@ def main() -> int:
                 print(f"corpus root not found: {args.corpus_root}", file=sys.stderr)
                 return 2
             payload, failures = run_legacy(conn, args.corpus_root, args.audit, args.dry_run)
+        elif args.adapter == "mark-schemes":
+            payload, failures = run_mark_schemes(conn, args.sources_root, args.dry_run)
         else:
             payload, failures = run_papers(conn, args.sources_root, args.dry_run)
 
@@ -357,7 +457,17 @@ def main() -> int:
     print(f"adapter            : {payload['adapter']}"
           f"{'  (dry run)' if args.dry_run else ''}")
     print(f"ingestion version  : {payload['ingestion_version']}")
-    if args.adapter == "legacy":
+    if args.adapter == "mark-schemes":
+        print(f"documents          : {payload['documents']}")
+        print(f"answers            : {payload['answers']}")
+        print(f"distractor explan. : {payload['distractor_explanations']}")
+        print("-" * 74)
+        for code, r in payload["by_document"].items():
+            print(f"  {code:8} answers={r['answers']:3}  {r['by_strategy']}  "
+                  f"distractors={r['distractor_explanations']:3}  "
+                  f"created={r['created']} unchanged={r['unchanged']}")
+        print("=" * 74)
+    elif args.adapter == "legacy":
         print(f"documents          : {payload['documents']}")
         print(f"source records     : {payload['source_records']}")
         w = payload["write"]

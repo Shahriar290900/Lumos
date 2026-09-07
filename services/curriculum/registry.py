@@ -124,7 +124,13 @@ class Offering:
             source_priority_policy=tuple(row["source_priority_policy"] or ()),
             display_note_en=row["display_note_en"],
             display_note_bn=row["display_note_bn"],
-            is_available=True,
+            # Read from the view, never asserted. This was hardcoded to True in
+            # b5a9753 to unblock UI work while nothing was indexed, and that is
+            # precisely the legacy defect ADR-011 exists to prevent: the tagged
+            # v1.0.0 shipped a বাংলা button with no Bangla corpus behind it.
+            # With generation live, that path returns a confident ungrounded
+            # answer to a student rather than a refusal.
+            is_available=bool(row["is_available"]),
             blocked_reasons=tuple(row["blocked_reasons"] or ()),
         )
 

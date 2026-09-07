@@ -35,9 +35,21 @@ from .providers.base import (
 )
 from .providers.mock import MockProvider
 
-# ADR-022. The Ollama tag and the Hugging Face repository id are the same model;
-# both are accepted so a provider swap does not need a config edit.
-PERMITTED_CHAT_MODELS = frozenset({"gemma4:e4b", "google/gemma-4-E4B-it"})
+# ADR-022, widened by ADR-027 to the Gemma 4 family rather than one member.
+#
+# The rule was never "E4B specifically" — it was "one declared model family, no
+# silent substitution". E4B was chosen because it was the variant that could run
+# on modest hardware, and then no inference host anywhere served it. The Gemini
+# API serves two larger Gemma 4 variants, so the family is reachable and the
+# demo is not blocked on hardware nobody has.
+#
+# Adding a member here is a decision that belongs in DECISIONS.md, which is why
+# this list is short, explicit, and checked at construction.
+PERMITTED_CHAT_MODELS = frozenset({
+    "gemma4:e4b", "google/gemma-4-E4B-it",   # Ollama / Hugging Face
+    "gemma-4-26b-a4b-it",                    # Gemini API — sparse MoE, ~11 s
+    "gemma-4-31b-it",                        # Gemini API — dense, 26-78 s
+})
 
 # Exempt from the single-model rule — the two jobs a decoder LLM cannot do.
 PERMITTED_EMBEDDING_MODELS = frozenset({"BAAI/bge-m3"})
@@ -74,8 +86,8 @@ class GatewayConfig:
         if self.chat_model not in PERMITTED_CHAT_MODELS:
             raise ModelPolicyViolation(
                 f"CHAT_MODEL={self.chat_model!r} is not permitted. Lumos generates "
-                f"with {DEFAULT_CHAT_MODEL} and nothing else (ADR-022). Permitted "
-                f"spellings: {sorted(PERMITTED_CHAT_MODELS)}. Changing this is a "
+                f"with the Gemma 4 family and nothing else (ADR-022, ADR-027). "
+                f"Permitted: {sorted(PERMITTED_CHAT_MODELS)}. Adding a model is a "
                 "decision that belongs in DECISIONS.md, not in an environment file."
             )
         if self.embedding_model not in PERMITTED_EMBEDDING_MODELS:
@@ -135,6 +147,16 @@ def build_provider(name: str) -> Provider:
     if name in ("huggingface", "hf"):
         from .providers.huggingface import HuggingFaceProvider
         return HuggingFaceProvider()
+    if name == "gemini":
+        # Generation on the Gemini API, embeddings still on Hugging Face: the
+        # corpus is indexed with bge-m3 and Gemini cannot reproduce those
+        # vectors. See SplitProvider.
+        from .providers.gemini import GeminiProvider
+        try:
+            from .providers.huggingface import HuggingFaceProvider
+            return SplitProvider(GeminiProvider(), HuggingFaceProvider())
+        except ProviderError:
+            return GeminiProvider()
     if name == "ollama":
         # Generation locally, embeddings on Hugging Face — see SplitProvider.
         from .providers.ollama import OllamaProvider
@@ -145,7 +167,7 @@ def build_provider(name: str) -> Provider:
             # No HF token: generation still works, retrieval will say why.
             return OllamaProvider()
     raise ProviderError(
-        f"unknown AI_PROVIDER={name!r}. Available: mock, huggingface, ollama. "
+        f"unknown AI_PROVIDER={name!r}. Available: mock, huggingface, gemini, ollama. "
         "An unrecognised provider is a configuration error, not a reason to "
         "guess at a default.")
 

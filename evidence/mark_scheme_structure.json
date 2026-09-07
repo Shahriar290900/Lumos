@@ -1,0 +1,75 @@
+{
+  "generated_at": "2026-09-07T11:41:51+00:00",
+  "adapter": "mark_scheme",
+  "ingestion_version": "004c.1",
+  "dry_run": false,
+  "note": "Counts and structure only. No mark-scheme text appears in this file.",
+  "documents": 6,
+  "answers": 64,
+  "distractor_explanations": 61,
+  "by_document": {
+    "WPH11": {
+      "offering": "edexcel-ial/physics/international-as",
+      "answers": 19,
+      "by_strategy": {
+        "mcq_table": 10,
+        "terminator": 9
+      },
+      "distractor_explanations": 30,
+      "created": 19,
+      "unchanged": 0
+    },
+    "WPH12": {
+      "offering": "edexcel-ial/physics/international-as",
+      "answers": 18,
+      "by_strategy": {
+        "mcq_table": 10,
+        "terminator": 8
+      },
+      "distractor_explanations": 28,
+      "created": 18,
+      "unchanged": 0
+    },
+    "WPH13": {
+      "offering": "edexcel-ial/physics/international-as",
+      "answers": 4,
+      "by_strategy": {
+        "terminator": 4
+      },
+      "distractor_explanations": 0,
+      "created": 4,
+      "unchanged": 0
+    },
+    "WPH14": {
+      "offering": "edexcel-ial/physics/a2",
+      "answers": 9,
+      "by_strategy": {
+        "mcq_table": 1,
+        "terminator": 8
+      },
+      "distractor_explanations": 3,
+      "created": 9,
+      "unchanged": 0
+    },
+    "WPH15": {
+      "offering": "edexcel-ial/physics/a2",
+      "answers": 10,
+      "by_strategy": {
+        "terminator": 10
+      },
+      "distractor_explanations": 0,
+      "created": 10,
+      "unchanged": 0
+    },
+    "WPH16": {
+      "offering": "edexcel-ial/physics/a2",
+      "answers": 4,
+      "by_strategy": {
+        "terminator": 4
+      },
+      "distractor_explanations": 0,
+      "created": 4,
+      "unchanged": 0
+    }
+  }
+}
