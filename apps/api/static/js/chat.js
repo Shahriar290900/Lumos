@@ -84,7 +84,20 @@ async function selectOffering() {
   await loadPapers(slug);
 }
 
+// Short codes, because the reference product uses them and students read them
+// faster than "Question paper". The full title is the button's tooltip.
 const TYPE_LABEL = { past_paper: "QP", mark_scheme: "MS", examiner_report: "ER" };
+const TYPE_ORDER = { past_paper: 0, mark_scheme: 1, examiner_report: 2 };
+
+function showBrowse() {
+  document.getElementById("browseView").hidden = false;
+  document.getElementById("readerView").hidden = true;
+}
+
+function showReader() {
+  document.getElementById("browseView").hidden = true;
+  document.getElementById("readerView").hidden = false;
+}
 
 async function loadPapers(slug) {
   const list = $("#paperList");
@@ -105,15 +118,23 @@ async function loadPapers(slug) {
   const groups = {};
   for (const d of state.documents) (groups[d.paper_code || "Other"] ??= []).push(d);
 
-  list.innerHTML = Object.entries(groups).map(([code, docs]) => `
+  list.innerHTML = Object.entries(groups).map(([code, docs]) => {
+    docs.sort((a, b) => (TYPE_ORDER[a.type] ?? 9) - (TYPE_ORDER[b.type] ?? 9));
+    const pages = docs.reduce((n, d) => n + (d.pages || 0), 0);
+    return `
     <div class="paper-group">
-      <div class="paper-code">${esc(code)}</div>
+      <div>
+        <div class="paper-code">${esc(code)}</div>
+        <div class="paper-meta">${docs.length} document${docs.length > 1 ? "s" : ""}${
+          pages ? " · " + pages + " pages" : ""}</div>
+      </div>
       <div class="paper-btns">
         ${docs.map((d) => `<button class="doc-btn" data-doc="${esc(d.document_id)}"
             data-type="${esc(d.type)}" title="${esc(d.title)}">
             ${esc(TYPE_LABEL[d.type] || d.type)}</button>`).join("")}
       </div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 
   $$("[data-doc]", list).forEach((b) => b.onclick = () => openPaper(b.dataset.doc));
 }
@@ -127,7 +148,9 @@ async function openPaper(documentId) {
 
   $$(".doc-btn").forEach((b) => b.classList.toggle("on", b.dataset.doc === documentId));
   $("#paperTitle").textContent = doc ? doc.title : "No paper open";
-  $("#paperBody").innerHTML = `<div class="empty"><p class="meta">Signing a link&hellip;</p></div>`;
+  showReader();
+  $("#paperBody").innerHTML =
+    `<div class="empty"><p>Signing a link&hellip;</p></div>`;
 
   const { ok, body } = await api.documentUrl(documentId);
   if (!ok || !body.url) {
@@ -187,6 +210,7 @@ function renderQuestions() {
 
 function renderScope() {
   const tag = $("#scopeTag");
+  if (!tag) return;
   if (state.question && state.paper) {
     tag.textContent = `${state.paper.paper_code} Q${state.question}`;
     tag.classList.add("on");
@@ -202,7 +226,7 @@ function renderScope() {
 
 /* ── thread ────────────────────────────────────────────────────────────── */
 
-function bubble(html, who = "tutor-msg") {
+function bubble(html, who = "from-tutor") {
   const el = document.createElement("div");
   el.className = `msg ${who}`;
   el.innerHTML = `<div class="bubble">${html}</div>`;
@@ -338,5 +362,5 @@ function renderCheck(ok, status, body) {
     box.style.height = Math.min(box.scrollHeight, 160) + "px";
   });
 
-  $("#railToggle").onclick = () => $("#rail").classList.toggle("collapsed");
+  $("#backToList").onclick = showBrowse;
 })();

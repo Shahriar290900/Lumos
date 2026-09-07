@@ -209,81 +209,67 @@ ONBOARDING = Page(
 CHAT = Page(
     path="/chat",
     title="Study Coach — Lumos",
-    description="Pick a paper, open a question, and have your answer marked against the real mark scheme.",
+    description="Open a past paper, pick a question, and have your answer marked against the real mark scheme.",
     scripts='<script type="module" src="/static/js/chat.js"></script>',
     body="""
 <div class="coach">
 
-  <!-- ── rail: curriculum → board → level → paper ─────────────────────── -->
-  <aside class="rail" id="rail">
-    <div class="rail-head">
-      <span class="kicker">Your papers</span>
-      <button id="railToggle" class="icon-btn" title="Collapse">&#9776;</button>
-    </div>
+  <!-- ── left: browse and read ────────────────────────────────────────── -->
+  <section class="workbench" id="workbench">
 
-    <label class="field">
-      <span>Curriculum</span>
-      <select id="curriculumSel"><option>loading&hellip;</option></select>
-    </label>
-    <label class="field">
-      <span>Level</span>
-      <select id="levelSel"><option>&mdash;</option></select>
-    </label>
-    <label class="field">
-      <span>Subject</span>
-      <select id="subjectSel"><option>&mdash;</option></select>
-    </label>
-
-    <div id="offeringState" class="rail-state"></div>
-
-    <div class="rail-section">
-      <span class="kicker">Papers</span>
-      <div id="paperList" class="paper-list"></div>
-    </div>
-  </aside>
-
-  <!-- ── middle: the paper ────────────────────────────────────────────── -->
-  <section class="paper">
-    <header class="paper-head">
-      <div id="paperTitle" class="paper-title">No paper open</div>
-      <div class="grow"></div>
-      <a id="openRaw" class="icon-btn" target="_blank" rel="noopener"
-         title="Open in a new tab" style="display:none">&#8599;</a>
-    </header>
-    <div id="paperBody" class="paper-body">
-      <div class="empty">
-        <div class="empty-mark">&#10022;</div>
-        <p>Choose a subject, then a paper.</p>
-        <p class="meta">Question papers, mark schemes and examiner reports are
-          served from private storage with links that expire.</p>
+    <div class="wb-view" id="browseView">
+      <div class="wb-bar">
+        <label class="field"><span>Curriculum</span>
+          <select id="curriculumSel"><option>Loading&hellip;</option></select></label>
+        <label class="field"><span>Level</span>
+          <select id="levelSel"><option>&mdash;</option></select></label>
+        <label class="field"><span>Subject</span>
+          <select id="subjectSel"><option>&mdash;</option></select></label>
       </div>
+
+      <div id="offeringState" class="wb-state" role="status"></div>
+
+      <div class="wb-scroll">
+        <div id="paperList" class="paper-list"></div>
+      </div>
+    </div>
+
+    <div class="wb-view" id="readerView" hidden>
+      <div class="wb-bar reader-bar">
+        <button id="backToList" class="btn-quiet" type="button">
+          <span aria-hidden="true">&#8592;</span> Papers</button>
+        <span id="paperTitle" class="reader-title">&mdash;</span>
+        <span class="grow"></span>
+        <a id="openRaw" class="btn-quiet" target="_blank" rel="noopener">Open&nbsp;&#8599;</a>
+      </div>
+      <div id="paperBody" class="reader-body"></div>
     </div>
   </section>
 
-  <!-- ── right: questions + tutor ─────────────────────────────────────── -->
+  <!-- ── right: the tutor ─────────────────────────────────────────────── -->
   <section class="tutor">
-    <header class="tutor-head">
-      <span class="kicker">Questions</span>
-      <div id="questionChips" class="qchips"><span class="meta">open a paper</span></div>
-    </header>
+    <div class="tutor-bar">
+      <span class="eyebrow">Questions</span>
+      <div id="questionChips" class="qchips"><span class="hint-text">Open a paper</span></div>
+    </div>
 
-    <div id="thread" class="thread">
-      <div class="msg tutor-msg"><div class="bubble">
-        I am Lumos. Open a paper, pick a question, then either ask about it or
-        write your answer and I will mark it against the official mark scheme.
-      </div></div>
+    <div id="thread" class="thread" role="log" aria-live="polite">
+      <!-- One source line: the bubble uses `white-space: pre-line` so the
+           model's paragraph breaks survive, which means a break here would
+           show up as one too. -->
+      <div class="msg from-tutor"><div class="bubble">I am Lumos. Open a paper, pick a question, then either ask about it or write your answer and I will mark it against the official mark scheme.</div></div>
     </div>
 
     <div class="composer">
-      <div class="mode-row">
-        <button class="mode on" data-mode="ask">Ask</button>
-        <button class="mode" data-mode="check">Mark my answer</button>
+      <div class="mode-row" role="tablist" aria-label="Mode">
+        <button class="mode on" data-mode="ask" role="tab" aria-selected="true">Ask</button>
+        <button class="mode" data-mode="check" role="tab" aria-selected="false">Mark my answer</button>
         <span id="scopeTag" class="scope-tag"></span>
       </div>
       <div class="input-row">
         <textarea id="q" rows="1" placeholder="Ask about this paper&hellip;"
                   aria-label="Your message"></textarea>
-        <button id="go" class="gold send-btn" title="Send">&#10140;</button>
+        <button id="go" class="send" title="Send" aria-label="Send">&#10140;</button>
       </div>
     </div>
   </section>

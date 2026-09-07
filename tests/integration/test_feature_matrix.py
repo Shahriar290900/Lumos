@@ -39,8 +39,9 @@ PAGE_CONTROLS: dict[str, tuple[str, ...]] = {
     "/": ("scene", "availCount", "registrySummary"),
     "/login": ("loginBtn", "demoLogin"),
     "/onboarding": (),
-    "/chat": ("rail", "railToggle", "curriculumSel", "levelSel", "subjectSel",
-              "offeringState", "paperList", "paperTitle", "paperBody", "openRaw",
+    "/chat": ("workbench", "browseView", "readerView", "backToList",
+              "curriculumSel", "levelSel", "subjectSel", "offeringState",
+              "paperList", "paperTitle", "paperBody", "openRaw",
               "questionChips", "thread", "scopeTag", "q", "go"),
     "/curriculum": ("offerings",),
     "/sources": ("docOffering", "loadDocs", "docs"),
@@ -184,3 +185,74 @@ def test_pages_and_api_do_not_collide():
     assert not (page_paths & api_paths), "a path is served as both a page and an API"
     for page in page_paths:
         assert not page.startswith("/api"), f"page {page} sits under /api"
+
+
+# ── 4. layout ───────────────────────────────────────────────────────────────
+#
+# The gap that let a broken page ship. The checks above proved every control
+# existed and every script bound to it — and the page still rendered as one
+# stacked column, because the markup and the JavaScript were written and the CSS
+# was not. "Present" and "laid out" are different properties.
+
+_CLASS_IN_HTML = re.compile(r"""\bclass=["']([^"']+)["']""")
+
+# Classes that carry no styling by design: state flags toggled from JS, and
+# hooks used only as query selectors.
+UNSTYLED_BY_DESIGN = frozenset({"on", "grow", "hidden"})
+
+
+def _classes_used(html: str) -> set[str]:
+    out: set[str] = set()
+    for group in _CLASS_IN_HTML.findall(html):
+        out.update(group.split())
+    return out
+
+
+@pytest.mark.parametrize("path", sorted(PAGE_CONTROLS), ids=lambda p: p)
+def test_every_class_a_page_uses_is_actually_styled(path):
+    """
+    A class with no rule is a component with no layout.
+
+    `.coach`, `.workbench` and `.tutor` were all in the markup, all bound by
+    JavaScript, and none of them had a single CSS rule — so the three panes
+    stacked vertically and the page looked broken while every other test passed.
+    """
+    css = (STATIC / "css" / "lumos.css").read_text(encoding="utf-8")
+    styled = set(re.findall(r"\.([A-Za-z][\w-]*)", css))
+    unstyled = sorted(c for c in _classes_used(ALL_PAGES[path])
+                      if c not in styled and c not in UNSTYLED_BY_DESIGN)
+    assert not unstyled, f"{path} uses unstyled class(es): {unstyled}"
+
+
+def test_the_coach_declares_a_two_pane_grid():
+    """The layout the page depends on, asserted rather than assumed."""
+    css = (STATIC / "css" / "lumos.css").read_text(encoding="utf-8")
+    block = re.search(r"\.coach\s*\{([^}]*)\}", css)
+    assert block, ".coach has no rule at all"
+    body = block.group(1)
+    assert "grid" in body, ".coach must be a grid"
+    assert "grid-template-columns" in body, ".coach must declare its columns"
+
+
+@pytest.mark.parametrize("selector", [
+    ".doc-btn", ".qchip", ".mode", ".send", ".field select", ".input-row textarea",
+])
+def test_every_interactive_control_declares_a_focus_style(selector):
+    """
+    WCAG 2.2: a keyboard user must be able to see where they are.
+
+    Asserted per control rather than globally, because a single `:focus-visible`
+    rule elsewhere in the sheet would satisfy a naive grep while leaving these
+    specific controls invisible to a keyboard.
+    """
+    css = (STATIC / "css" / "lumos.css").read_text(encoding="utf-8")
+    escaped = re.escape(selector)
+    assert re.search(escaped + r"[^{]*:focus-visible", css), (
+        f"{selector} has no :focus-visible style")
+
+
+def test_hover_and_disabled_states_exist_for_the_send_button():
+    """The design brief requires default, hover, focus, active and disabled."""
+    css = (STATIC / "css" / "lumos.css").read_text(encoding="utf-8")
+    for state in (":hover", ":focus-visible", ":active", ":disabled"):
+        assert re.search(r"\.send" + re.escape(state), css), f".send lacks {state}"

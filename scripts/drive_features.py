@@ -117,14 +117,15 @@ record("marking", "unknown question refused", d.get("limitation") == "question_n
 
 # ── browser: are the controls actually wired? ────────────────────────────
 h = dom("/chat")
-ids = ["rail", "railToggle", "curriculumSel", "levelSel", "subjectSel",
+ids = ["workbench", "browseView", "readerView", "backToList",
+       "curriculumSel", "levelSel", "subjectSel",
        "paperList", "paperTitle", "paperBody", "questionChips", "thread"]
 present = set(re.findall(r'id="([^"]+)"', h))
 missing = [i for i in ids if i not in present]
 n_options = count(h, r"<option")
 n_docs = count(h, r"data-doc=")
 n_modes = count(h, r"data-mode=")
-record("ui", "/chat controls present", not missing, str(missing) or "all 10 present")
+record("ui", "/chat controls present", not missing, str(missing) or "all 12 present")
 record("ui", "curriculum dropdown populated", ("Edexcel" in h or "NCTB" in h),
        str(n_options) + " options")
 record("ui", "paper buttons rendered", n_docs >= 3, str(n_docs) + " buttons")
