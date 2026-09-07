@@ -34,7 +34,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Sequence
 
-from services.models import CapabilityUnavailable, ModelGateway
+from services.models import CapabilityUnavailable, ModelGateway, ProviderError
 from services.rag.retrieval import (
     Candidate, HybridRetriever, RetrievalResult, detect_language,
 )
@@ -195,6 +195,21 @@ class Tutor:
 
         try:
             completion = self._gateway.generate(prompt, system=system, max_tokens=700)
+        except ProviderError as exc:
+            # A provider that fails mid-request is not an exception the student
+            # should meet as a 500. Gemma 4 thinks before answering and cannot be
+            # told not to, so on a short question it sometimes spends the entire
+            # output budget thinking and returns no answer part at all — which
+            # crashed this route until now. Retrieval already succeeded, so the
+            # citations are real; say what happened and show them.
+            answer.limitation = "generation_failed"
+            answer.text = ("Retrieval worked and the sources below are real, but "
+                           "the model did not return an answer for this question. "
+                           "Try asking it more specifically.")
+            answer.citations = [{"marker": i, **c.citation()}
+                                for i, c in enumerate(found.candidates, start=1)]
+            answer.warnings.append(str(exc)[:200])
+            return answer
         except CapabilityUnavailable as exc:
             # No generation model. Retrieval and citations are still real, and
             # saying so is more useful than an error page — but this is never
@@ -347,6 +362,14 @@ class AnswerMarker:
 
         try:
             completion = self._gateway.generate(prompt, system=system, max_tokens=900)
+        except ProviderError as exc:
+            marked.limitation = "generation_failed"
+            marked.text = ("I have the question and its mark scheme, but the model "
+                           "did not return a marking response. Try again.")
+            marked.citations = [{"marker": i, **c.citation()}
+                                for i, c in enumerate(context, start=1)]
+            marked.warnings.append(str(exc)[:200])
+            return marked
         except CapabilityUnavailable as exc:
             marked.limitation = "no_generation_model"
             marked.text = ("The question and its mark scheme are here, but no "

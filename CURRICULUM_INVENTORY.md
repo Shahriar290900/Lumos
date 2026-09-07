@@ -8,14 +8,14 @@
 > against an actual 180 because it was prose nobody re-derived (ADR-008). CI
 > re-runs `scripts/check_registry_consistency.py` so the two cannot drift again.
 
-Generated: 2026-09-04
+Generated: 2026-09-07
 
 ## Offerings and availability
 
 | Offering | Curriculum | Subject | Level | Status | Sources | Canonical | Indexed | Available |
 |---|---|---|---|---|---:|---:|---:|---|
-| `edexcel-ial/physics/international-as` | EDEXCEL_IAL | Physics | International AS | available | 10 | 41 | 41 | yes |
-| `edexcel-ial/physics/a2` | EDEXCEL_IAL | Physics | International A2 | planned — no corpus | 10 | 59 | 59 | no |
+| `edexcel-ial/physics/international-as` | EDEXCEL_IAL | Physics | International AS | available | 10 | 82 | 82 | yes |
+| `edexcel-ial/physics/a2` | EDEXCEL_IAL | Physics | International A2 | planned — no corpus | 10 | 82 | 82 | no |
 | `nctb/bangla/ssc` | NCTB | Bangla | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 | `nctb/biology/ssc` | NCTB | Biology | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
 | `nctb/chemistry/ssc` | NCTB | Chemistry | Secondary School Certificate | planned — no corpus | 0 | 0 | 0 | no |
@@ -29,6 +29,8 @@ Three counts, three different things (ADR-014, ADR-020): **audited** is what an 
 **1 offering(s) available.**
 
 ### Why each offering is unavailable
+
+*Deployment snapshot: these reasons reflect the pipeline state of the machine that generated this file, so they differ between a fresh clone and one that has embedded the corpus. The audited sections below are reproducible anywhere.*
 
 | Offering | Blocked by |
 |---|---|
@@ -68,19 +70,23 @@ These are **audited** counts of legacy source records, not indexed chunks. `inde
 |---|---|---|---|---:|---:|
 | `edexcel-ial/physics/a2` | exam_question | pdf_text_layer | cleaned | 42 | 127 |
 | `edexcel-ial/physics/a2` | legacy_record | structured_jsonl | verbatim | 17 | 278 |
+| `edexcel-ial/physics/a2` | mark_scheme_answer | pdf_text_layer | cleaned | 23 | 378 |
 | `edexcel-ial/physics/international-as` | exam_question | pdf_text_layer | cleaned | 41 | 133 |
+| `edexcel-ial/physics/international-as` | mark_scheme_answer | pdf_text_layer | cleaned | 41 | 195 |
 | `nctb/english/ssc` | legacy_record | structured_jsonl | derived | 104 | 499 |
 | `nctb/english/ssc` | legacy_record | structured_jsonl | verbatim | 5 | 308 |
 | `nctb/ict/ssc` | legacy_record | structured_jsonl | derived | 164 | 447 |
 
-**373 canonical chunks total.** Provenance is recorded per chunk, not per corpus: `verbatim` means the stored text is exactly what extraction produced, `cleaned` means layout furniture was removed, `normalized` means Unicode normalisation changed something. Anything other than verbatim keeps its untransformed text.
+**437 canonical chunks total.** Provenance is recorded per chunk, not per corpus: `verbatim` means the stored text is exactly what extraction produced, `cleaned` means layout furniture was removed, `normalized` means Unicode normalisation changed something. Anything other than verbatim keeps its untransformed text.
 
 ### Normalisation runs
 
 | Offering | Adapter | Version | Documents | Source records |
 |---|---|---|---:|---:|
 | `edexcel-ial/physics/a2` | legacy_corpus | 004c.1 | 1 | 17 |
+| `edexcel-ial/physics/a2` | mark_scheme | 004c.1 | 3 | 23 |
 | `edexcel-ial/physics/a2` | past_paper | 004c.1 | 3 | 42 |
+| `edexcel-ial/physics/international-as` | mark_scheme | 004c.1 | 3 | 41 |
 | `edexcel-ial/physics/international-as` | past_paper | 004c.1 | 3 | 41 |
 | `nctb/english/ssc` | legacy_corpus | 004c.1 | 1 | 43 |
 | `nctb/ict/ssc` | legacy_corpus | 004c.1 | 1 | 120 |

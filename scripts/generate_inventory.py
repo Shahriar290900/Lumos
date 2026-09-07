@@ -179,6 +179,19 @@ def render(data: dict[str, Any], audit: dict[str, Any], catalog: dict[str, Any] 
 
     add("### Why each offering is unavailable")
     add("")
+    # A snapshot of THIS deployment, not a seed-derived fact, and labelled so.
+    #
+    # Every reason here — indexing_status, no_indexed_chunks, publication_status
+    # — moves when the pipeline runs. A fresh clone that has only migrated and
+    # seeded sees all nine offerings blocked on `no_indexed_chunks`; a machine
+    # that has embedded the corpus sees four of them cleared. Both are correct.
+    # CI therefore cannot compare this table, and pretending otherwise is what
+    # kept the workflow red for twelve commits (see the note in ci.yml).
+    add("*Deployment snapshot: these reasons reflect the pipeline state of the "
+        "machine that generated this file, so they differ between a fresh clone "
+        "and one that has embedded the corpus. The audited sections below are "
+        "reproducible anywhere.*")
+    add("")
     add("| Offering | Blocked by |")
     add("|---|---|")
     for r in o:

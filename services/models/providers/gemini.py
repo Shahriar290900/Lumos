@@ -24,10 +24,10 @@ would have shipped a broken demo if assumed instead:
    `_answer_text` keeps only the parts *not* marked as thought. That filter is
    the single most important line in this file.
 
-3. **A small token budget yields no answer at all.** Thinking runs 400–730
-   tokens before the answer starts, so `maxOutputTokens=80` returns one thought
-   part, `finishReason=MAX_TOKENS`, and nothing to show. Anything under about
-   1,200 is unusable; the floor below is 1,500.
+3. **A small token budget yields no answer at all.** Thinking runs 500–800
+   tokens before the answer starts and has been seen at 1,497, so
+   `maxOutputTokens=80` returns one thought part, `finishReason=MAX_TOKENS`, and
+   nothing to show. See `MIN_OUTPUT_TOKENS` for the measurements and the floor.
 
 **Model choice.** `gemma-4-26b-a4b-it` is a sparse mixture of experts — 26B
 total, ~4B active — and answered in 11–13 s. The dense `gemma-4-31b-it` took
@@ -48,10 +48,20 @@ from .base import CapabilityUnavailable, Completion, Embedding, ProviderError, R
 
 DEFAULT_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta"
 
-# Thinking runs 400–730 tokens before the answer begins. Below roughly 1,200 the
-# budget is spent entirely on thought and the response carries no answer part —
-# a silent empty answer rather than an error, which is the worst failure shape.
-MIN_OUTPUT_TOKENS = 1500
+# Thinking is unbounded overhead that the caller cannot see, so the floor has to
+# cover it with room to spare.
+#
+# Measured across bare questions and full RAG prompts: 525, 547, 599, 628, 649,
+# 745, 798 — and once **1,497**, on a short vague question ("Whats momentum?")
+# with six chunks of retrieved context. That run spent the entire 1,500 budget
+# thinking, returned no answer part, and took the /api/tutor/ask route down with
+# an unhandled 500.
+#
+# Thinking length is not a function of prompt size in any way worth predicting:
+# the same prompt produced 745 tokens on the next attempt. So this is headroom
+# over the worst observed, not a calculation — and `Tutor.ask` still catches
+# `ProviderError`, because a floor is a mitigation and not a guarantee.
+MIN_OUTPUT_TOKENS = 3000
 
 _RETRY_STATUSES = frozenset({429, 500, 503, 504})
 

@@ -183,14 +183,22 @@ jobs:
       - name: CURRICULUM_INVENTORY.md matches the registry
         # CI holds neither the private PDFs nor the exam chunks derived from
         # them, so the source-document and canonical-chunk sections legitimately
-        # differ here. Compare the sections that depend only on the registry and
-        # the committed audit evidence — those must never drift.
+        # differ here. Compare only what a fresh clone can reproduce from the
+        # migrations and the committed audit evidence.
+        #
+        # "Why each offering is unavailable" USED to be compared here and cannot
+        # be: every reason in it (indexing_status, no_indexed_chunks,
+        # publication_status) moves when the pipeline runs. CI sees a fresh seed
+        # where all nine offerings are blocked; a machine that has embedded the
+        # corpus sees four cleared and one published. Both are correct, so the
+        # comparison could only ever fail — and it did, for twelve commits from
+        # dd42476 onward. The table is now labelled a deployment snapshot in the
+        # generated file itself.
         run: |
           python scripts/generate_inventory.py --output /tmp/inventory.md
           python - <<'PY'
           import re
           SECTIONS = [
-              r"### Why each offering is unavailable(.*?)\n## ",
               r"## Audited legacy corpus(.*?)\n## ",
           ]
           def extract(path):
