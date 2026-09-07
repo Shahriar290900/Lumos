@@ -334,3 +334,49 @@ class HybridRetriever:
             return (-(base + bonus), c.chunk_id)
 
         return sorted(pool, key=key) + candidates[len(pool):]
+
+
+    # ── scoped lookup ────────────────────────────────────────────────────────
+
+    def for_question(self, *, offering_id: str, paper_code: str,
+                     question_number: str) -> list[Candidate]:
+        """
+        The question itself and its mark scheme, fetched directly.
+
+        Not a search. When a student is looking at question 7 of WPH11 and asks
+        about question 7 of WPH11, similarity is the wrong tool: the right
+        passages are known exactly, and retrieving them by embedding would
+        introduce a chance of returning question 8 instead.
+
+        Ordered so the question comes first and the mark scheme second, because
+        that is the order the marker reads them in and the order the prompt
+        wants them. Returns an empty list when the pair does not exist, which is
+        a real answer — some papers have no mark scheme for a given number.
+        """
+        with self._conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(
+                f"""
+                SELECT {_SELECT}
+                FROM chunks c
+                JOIN subject_offerings o ON o.id = c.offering_id
+                LEFT JOIN source_documents sd ON sd.id = c.source_document_id
+                WHERE c.offering_id = %s
+                  AND sd.paper_code = %s
+                  AND c.question_number = %s
+                  AND c.chunk_type IN ('exam_question', 'mark_scheme_answer')
+                ORDER BY CASE c.chunk_type
+                             WHEN 'exam_question' THEN 0
+                             WHEN 'mark_scheme_answer' THEN 1
+                             ELSE 2 END,
+                         c.id
+                """,
+                (offering_id, paper_code, str(question_number)))
+            rows = [dict(r) for r in cur.fetchall()]
+
+        return [Candidate(
+            chunk_id=r["chunk_id"], chunk_key=r["chunk_key"], text=r["text"],
+            offering_slug=r["offering_slug"], chunk_type=r["chunk_type"],
+            document_title=r["document_title"], paper_code=r["paper_code"],
+            question_number=r["question_number"], page_number=r["page_number"],
+            section_ref=r["section_ref"], source_priority=r["source_priority"],
+            language=r["language"]) for r in rows]

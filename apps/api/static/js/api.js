@@ -27,6 +27,11 @@ export const api = {
   curriculum: () => json("/api/curriculum"),
   documents: (slug) => json(`/api/offerings/${slug}/documents`),
   documentUrl: (id) => json(`/api/documents/${id}/url`),
+  documentQuestions: (id) => json(`/api/documents/${id}/questions`),
+  check: (answer, slug, paper_code, question_number) => json("/api/tutor/check", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ answer, slug, paper_code, question_number }),
+  }),
   ask: (query, slug) => json("/api/tutor/ask", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, slug }),

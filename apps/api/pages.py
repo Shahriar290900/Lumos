@@ -208,52 +208,85 @@ ONBOARDING = Page(
 
 CHAT = Page(
     path="/chat",
-    title="AI Tutor Chat — Lumos",
-    description="Ask questions and analyze past papers side-by-side.",
+    title="Study Coach — Lumos",
+    description="Pick a paper, open a question, and have your answer marked against the real mark scheme.",
     scripts='<script type="module" src="/static/js/chat.js"></script>',
     body="""
-<div class="split-layout">
-  <!-- Left Pane: Document Viewer -->
-  <div class="pane left-pane">
-    <div class="pane-header">
-      <span class="pill yes">A-Level Physics (2024)</span>
-      <span style="font-size:12px; color:var(--dim); margin-left:auto">Paper 4 · Mark Scheme</span>
-    </div>
-    <div class="doc-viewer" id="docViewer">
-      <div class="mock-doc-placeholder">
-        <h3>Question 3: Momentum</h3>
-        <p><b>(a)</b> State the principle of conservation of momentum. [2]</p>
-        <div class="mark-scheme-line"><i>Total momentum before = total momentum after (1)</i></div>
-        <div class="mark-scheme-line"><i>Provided no external forces act (1)</i></div>
-        <br>
-        <p><b>(b)</b> A car of mass 1200kg travelling at 15m/s collides with...</p>
-        <div class="mark-scheme-line"><i>Use of m1v1 + m2v2 = (m1+m2)v (1)</i></div>
-      </div>
-    </div>
-  </div>
+<div class="coach">
 
-  <!-- Right Pane: Chatbot -->
-  <div class="pane right-pane">
-    <div class="chat-history" id="chatHistory">
-      <div class="msg tutor">
-        <div class="bubble">
-          Hello! I am Lumos. I see you are looking at the Physics Paper 4 mark scheme on Momentum. How can I help you understand these concepts?
-        </div>
+  <!-- ── rail: curriculum → board → level → paper ─────────────────────── -->
+  <aside class="rail" id="rail">
+    <div class="rail-head">
+      <span class="kicker">Your papers</span>
+      <button id="railToggle" class="icon-btn" title="Collapse">&#9776;</button>
+    </div>
+
+    <label class="field">
+      <span>Curriculum</span>
+      <select id="curriculumSel"><option>loading&hellip;</option></select>
+    </label>
+    <label class="field">
+      <span>Level</span>
+      <select id="levelSel"><option>&mdash;</option></select>
+    </label>
+    <label class="field">
+      <span>Subject</span>
+      <select id="subjectSel"><option>&mdash;</option></select>
+    </label>
+
+    <div id="offeringState" class="rail-state"></div>
+
+    <div class="rail-section">
+      <span class="kicker">Papers</span>
+      <div id="paperList" class="paper-list"></div>
+    </div>
+  </aside>
+
+  <!-- ── middle: the paper ────────────────────────────────────────────── -->
+  <section class="paper">
+    <header class="paper-head">
+      <div id="paperTitle" class="paper-title">No paper open</div>
+      <div class="grow"></div>
+      <a id="openRaw" class="icon-btn" target="_blank" rel="noopener"
+         title="Open in a new tab" style="display:none">&#8599;</a>
+    </header>
+    <div id="paperBody" class="paper-body">
+      <div class="empty">
+        <div class="empty-mark">&#10022;</div>
+        <p>Choose a subject, then a paper.</p>
+        <p class="meta">Question papers, mark schemes and examiner reports are
+          served from private storage with links that expire.</p>
       </div>
     </div>
-    
-    <div class="chat-input-area">
-      <div id="attachmentPill" class="attachment-pill" style="display:none">
-        <span class="ico">&#128206;</span> <span id="attachmentName">doc.pdf</span>
-        <button id="removeAttachment" class="close-btn">&times;</button>
+  </section>
+
+  <!-- ── right: questions + tutor ─────────────────────────────────────── -->
+  <section class="tutor">
+    <header class="tutor-head">
+      <span class="kicker">Questions</span>
+      <div id="questionChips" class="qchips"><span class="meta">open a paper</span></div>
+    </header>
+
+    <div id="thread" class="thread">
+      <div class="msg tutor-msg"><div class="bubble">
+        I am Lumos. Open a paper, pick a question, then either ask about it or
+        write your answer and I will mark it against the official mark scheme.
+      </div></div>
+    </div>
+
+    <div class="composer">
+      <div class="mode-row">
+        <button class="mode on" data-mode="ask">Ask</button>
+        <button class="mode" data-mode="check">Mark my answer</button>
+        <span id="scopeTag" class="scope-tag"></span>
       </div>
       <div class="input-row">
-        <button id="attachBtn" class="attach-btn" title="Upload document">&#128206;</button>
-        <input id="q" type="text" placeholder="Ask about this paper..." aria-label="Your question">
-        <button id="go" class="gold send-btn">&#10140;</button>
+        <textarea id="q" rows="1" placeholder="Ask about this paper&hellip;"
+                  aria-label="Your message"></textarea>
+        <button id="go" class="gold send-btn" title="Send">&#10140;</button>
       </div>
     </div>
-  </div>
+  </section>
 </div>
 """)
 

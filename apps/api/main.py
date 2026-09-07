@@ -19,6 +19,7 @@ from contextlib import contextmanager
 from typing import Any, Iterator
 
 import psycopg
+from psycopg.rows import dict_row
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -331,6 +332,81 @@ def document_url(document_id: str) -> dict[str, Any]:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                             detail={"error": "delivery_unconfigured", "message": str(exc)})
     return {"url": url, "expires_in": 900, **document.as_dict()}
+
+
+class CheckRequest(BaseModel):
+    """A student's answer to one specific past-paper question."""
+
+    answer: str = Field(min_length=1, max_length=6000)
+    slug: str = Field(min_length=1, max_length=128)
+    paper_code: str = Field(min_length=2, max_length=16)
+    question_number: str = Field(min_length=1, max_length=8)
+
+
+@app.get("/api/documents/{document_id}/questions")
+def document_questions(document_id: str) -> dict[str, Any]:
+    """
+    The questions parsed from one document, so a student can pick one.
+
+    Ordered numerically rather than as text, because `question_number` is a
+    string and lexical order puts 10 before 2.
+    """
+    with _connection() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(
+                """
+                SELECT c.question_number, c.marks, c.page_number,
+                       c.chunk_type::text AS chunk_type, sd.paper_code
+                FROM chunks c
+                JOIN source_documents sd ON sd.id = c.source_document_id
+                WHERE c.source_document_id = %s::uuid
+                  AND c.question_number IS NOT NULL
+                ORDER BY
+                    CASE WHEN c.question_number ~ '^[0-9]+$'
+                         THEN c.question_number::int ELSE 9999 END,
+                    c.question_number
+                """,
+                (document_id,))
+            rows = [dict(r) for r in cur.fetchall()]
+    return {"document_id": document_id,
+            "paper_code": rows[0]["paper_code"] if rows else None,
+            "questions": rows, "count": len(rows)}
+
+
+@app.post("/api/tutor/check")
+def tutor_check(req: CheckRequest) -> JSONResponse:
+    """
+    Mark a student's answer against the official mark scheme.
+
+    The availability gate runs first, exactly as it does for a question: a
+    subject the registry has not cleared cannot be marked against either.
+    """
+    from services.models import ModelGateway
+    from services.rag.retrieval import HybridRetriever
+    from services.rag.tutor import AnswerMarker
+
+    with _connection() as conn:
+        registry = CurriculumRegistry(conn)
+        try:
+            offering = registry.require_available(slug=req.slug)
+        except OfferingNotFound as exc:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail={"error": "unknown_offering", "message": str(exc)})
+        except OfferingUnavailable as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={"error": "subject_unavailable", "slug": exc.slug,
+                        "blocked_reasons": list(exc.reasons),
+                        "message_en": exc.display_note_en
+                        or "This subject is not available yet."})
+
+        gateway = ModelGateway.from_env()
+        marker = AnswerMarker(HybridRetriever(conn, gateway), gateway)
+        marked = marker.check(req.answer, offering_id=offering.offering_id,
+                              paper_code=req.paper_code,
+                              question_number=req.question_number)
+
+    return JSONResponse(status_code=200, content=marked.as_dict())
 
 
 # ─────────────────────────────────────────────────────────────────────────────
